@@ -21,14 +21,15 @@ const critters = await getCollection("critters");
 <script>
 const SIZE = 56;
 const R = SIZE / 2;
-const FRICTION = 0.955;
+const FRICTION = 0.97;
 const BOUNCE = 0.6;
 const MAX_SPEED = 40;
 const DRAG_START = 6;
 const FRAME = 1000 / 60;
+const THROW = 1.4;
+const STALE = 100;
 
 type Ball = { el: HTMLElement; x: number; y: number; vx: number; vy: number; face: number };
-type Sample = { x: number; y: number; t: number };
 
 const pen = document.querySelector<HTMLElement>(".pen")!;
 const tag = pen.querySelector<HTMLElement>(".pen-name")!;
@@ -44,7 +45,10 @@ const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("a")].map((el, i) =>
 let held: Ball | null = null;
 let hover: Ball | null = null;
 let dragging = false;
-let trail: Sample[] = [];
+let pointer = { x: 0, y: 0, t: 0 };
+let fling = { x: 0, y: 0 };
+let press = { x: 0, y: 0 };
+let offset = { x: 0, y: 0 };
 let running = false;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
@@ -73,12 +77,11 @@ function collide(a: Ball, b: Ball) {
 }
 
 function follow(b: Ball) {
-  const last = trail[trail.length - 1];
-  if (!last || !dragging) return;
-  b.vx = last.x - b.x;
-  b.vy = last.y - b.y;
-  b.x = last.x;
-  b.y = last.y;
+  if (!dragging) return;
+  b.vx = pointer.x - offset.x - b.x;
+  b.vy = pointer.y - offset.y - b.y;
+  b.x += b.vx;
+  b.y += b.vy;
 }
 
 function move(b: Ball) {
@@ -116,15 +119,18 @@ function wake() {
   if (!running) { running = true; requestAnimationFrame(step); }
 }
 
-function sample(e: PointerEvent): Sample {
+function sample(e: PointerEvent) {
   const r = pen.getBoundingClientRect();
-  return { x: e.clientX - r.left, y: e.clientY - r.top, t: e.timeStamp };
+  return { x: e.clientX - r.left, y: e.clientY - r.top, t: performance.now() };
 }
 
 function grab(b: Ball, e: PointerEvent) {
   held = b;
   dragging = false;
-  trail = [sample(e)];
+  pointer = sample(e);
+  press = { x: pointer.x, y: pointer.y };
+  offset = { x: pointer.x - b.x, y: pointer.y - b.y };
+  fling = { x: 0, y: 0 };
   b.vx = b.vy = 0;
   b.el.setPointerCapture(e.pointerId);
   wake();
@@ -132,27 +138,25 @@ function grab(b: Ball, e: PointerEvent) {
 
 function drag(e: PointerEvent) {
   const s = sample(e);
-  trail.push(s);
-  trail = trail.filter((p) => s.t - p.t < 80);
-  if (!dragging) dragging = Math.hypot(s.x - held!.x, s.y - held!.y) > DRAG_START;
+  const dt = Math.max(s.t - pointer.t, 1) / FRAME;
+  fling.x = fling.x * 0.5 + ((s.x - pointer.x) / dt) * 0.5;
+  fling.y = fling.y * 0.5 + ((s.y - pointer.y) / dt) * 0.5;
+  pointer = s;
+  if (!dragging) dragging = Math.hypot(s.x - press.x, s.y - press.y) > DRAG_START;
 }
 
-function release(b: Ball, e: PointerEvent) {
-  trail = trail.filter((p) => e.timeStamp - p.t < 80);
-  const first = trail[0];
-  const last = trail[trail.length - 1];
-  const dt = last && first ? last.t - first.t : 0;
-  b.vx = dt > 0 ? clamp(((last!.x - first!.x) / dt) * FRAME, -MAX_SPEED, MAX_SPEED) : 0;
-  b.vy = dt > 0 ? clamp(((last!.y - first!.y) / dt) * FRAME, -MAX_SPEED, MAX_SPEED) : 0;
+function release(b: Ball) {
+  const live = dragging && performance.now() - pointer.t < STALE;
+  b.vx = live ? clamp(fling.x * THROW, -MAX_SPEED, MAX_SPEED) : 0;
+  b.vy = live ? clamp(fling.y * THROW, -MAX_SPEED, MAX_SPEED) : 0;
   held = null;
-  trail = [];
   wake();
 }
 
 balls.forEach((b) => {
   b.el.onpointerdown = (e) => grab(b, e);
   b.el.onpointermove = (e) => { if (held === b) drag(e); };
-  b.el.onpointerup = (e) => { if (held === b) release(b, e); };
+  b.el.onpointerup = () => { if (held === b) release(b); };
   b.el.onpointerenter = () => { hover = b; label(); };
   b.el.onpointerleave = () => { if (hover === b && held !== b) hover = null; label(); };
   b.el.onclick = (e) => { if (dragging) e.preventDefault(); };
