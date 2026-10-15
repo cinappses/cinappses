@@ -3,7 +3,7 @@ import { Image } from "astro:assets";
 import { getCollection, render } from "astro:content";
 import "../styles/site.css";
 import logo from "../assets/logo.png";
-import luci from "../assets/luci.png";
+import doll from "../assets/doll.png";
 
 const { title } = Astro.props;
 const [latest] = (await getCollection("status")).sort((a, b) => +b.data.date - +a.data.date);
@@ -24,7 +24,7 @@ const { Content: Status } = await render(latest);
 <a href="/status/">{latest.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</a>
 <Status />
 </div>
-<Image src={luci} alt="" width={260} />
+<Image src={doll} alt="" width={460} />
 </aside>
 <main><slot /></main>
 <nav>
