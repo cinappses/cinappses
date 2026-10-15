@@ -103,8 +103,8 @@ dialog img { max-height: 72vh; display: block; margin: 0 auto; }
 dialog figcaption { border-top: 2px solid var(--ink); margin-top: 12px; padding-top: 8px; }
 dialog summary { cursor: pointer; }
 
-.pen { position: relative; height: 440px; border: 3px dashed var(--ink); border-radius: 16px; background: #f7e3b5; overflow: hidden; touch-action: none; }
-.pen a { position: absolute; left: 0; top: 0; width: 56px; cursor: grab; user-select: none; }
+.pen { position: relative; height: 440px; border: 3px dashed var(--ink); border-radius: 16px; background: #f7e3b5; overflow: hidden; touch-action: pan-y; }
+.pen a { position: absolute; left: 0; top: 0; width: 56px; cursor: grab; user-select: none; touch-action: none; -webkit-touch-callout: none; }
 .pen a:active { cursor: grabbing; }
 .pen a:hover { z-index: 1; }
 .pen-name { position: absolute; z-index: 2; padding: 0 6px; background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; font-size: .8em; white-space: nowrap; pointer-events: none; transform: translate(-50%, -100%); }

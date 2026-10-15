@@ -27,13 +27,15 @@ const MAX_SPEED = 40;
 const DRAG_START = 6;
 const FRAME = 1000 / 60;
 const THROW = 1.4;
-const STALE = 100;
+const STALE = 300;
+const WINDOW = 120;
 
 type Ball = { el: HTMLElement; x: number; y: number; vx: number; vy: number; face: number };
 
 const pen = document.querySelector<HTMLElement>(".pen")!;
 const tag = pen.querySelector<HTMLElement>(".pen-name")!;
 const cols = Math.floor(pen.clientWidth / (SIZE + 12));
+pen.style.minHeight = `${Math.ceil(pen.querySelectorAll("a").length / cols) * (SIZE + 12) + 80}px`;
 const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("a")].map((el, i) => ({
   el,
   x: R + 6 + (i % cols) * (SIZE + 12) + Math.random() * 8,
@@ -46,7 +48,9 @@ let held: Ball | null = null;
 let hover: Ball | null = null;
 let dragging = false;
 let pointer = { x: 0, y: 0, t: 0 };
-let fling = { x: 0, y: 0 };
+let moves: { x: number; y: number; t: number }[] = [];
+let named: Ball | null = null;
+let touch = false;
 let press = { x: 0, y: 0 };
 let offset = { x: 0, y: 0 };
 let running = false;
@@ -125,12 +129,13 @@ function sample(e: PointerEvent) {
 }
 
 function grab(b: Ball, e: PointerEvent) {
+  touch = e.pointerType === "touch";
   held = b;
   dragging = false;
   pointer = sample(e);
   press = { x: pointer.x, y: pointer.y };
   offset = { x: pointer.x - b.x, y: pointer.y - b.y };
-  fling = { x: 0, y: 0 };
+  moves = [];
   b.vx = b.vy = 0;
   b.el.setPointerCapture(e.pointerId);
   wake();
@@ -139,16 +144,18 @@ function grab(b: Ball, e: PointerEvent) {
 function drag(e: PointerEvent) {
   const s = sample(e);
   const dt = Math.max(s.t - pointer.t, 1) / FRAME;
-  fling.x = fling.x * 0.5 + ((s.x - pointer.x) / dt) * 0.5;
-  fling.y = fling.y * 0.5 + ((s.y - pointer.y) / dt) * 0.5;
+  const v = { x: (s.x - pointer.x) / dt, y: (s.y - pointer.y) / dt, t: s.t };
+  if (Math.hypot(v.x, v.y) > 0.5) moves = [...moves.filter((m) => s.t - m.t < WINDOW), v];
   pointer = s;
   if (!dragging) dragging = Math.hypot(s.x - press.x, s.y - press.y) > DRAG_START;
 }
 
 function release(b: Ball) {
-  const live = dragging && performance.now() - pointer.t < STALE;
-  b.vx = live ? clamp(fling.x * THROW, -MAX_SPEED, MAX_SPEED) : 0;
-  b.vy = live ? clamp(fling.y * THROW, -MAX_SPEED, MAX_SPEED) : 0;
+  const last = moves[moves.length - 1];
+  const live = dragging && !!last && performance.now() - last.t < STALE;
+  const peak = moves.reduce((a, m) => (Math.hypot(m.x, m.y) > Math.hypot(a.x, a.y) ? m : a), { x: 0, y: 0, t: 0 });
+  b.vx = live ? clamp(peak.x * THROW, -MAX_SPEED, MAX_SPEED) : 0;
+  b.vy = live ? clamp(peak.y * THROW, -MAX_SPEED, MAX_SPEED) : 0;
   held = null;
   wake();
 }
@@ -158,8 +165,15 @@ balls.forEach((b) => {
   b.el.onpointermove = (e) => { if (held === b) drag(e); };
   b.el.onpointerup = () => { if (held === b) release(b); };
   b.el.onpointerenter = () => { hover = b; label(); };
-  b.el.onpointerleave = () => { if (hover === b && held !== b) hover = null; label(); };
-  b.el.onclick = (e) => { if (dragging) e.preventDefault(); };
+  b.el.onpointerleave = (e) => {
+    if (e.pointerType === "touch" || hover !== b || held === b) return;
+    hover = null;
+    label();
+  };
+  b.el.onclick = (e) => {
+    if (dragging || (touch && named !== b)) e.preventDefault();
+    if (touch && !dragging) { named = hover = b; label(); }
+  };
 });
 
 balls.forEach(draw);
