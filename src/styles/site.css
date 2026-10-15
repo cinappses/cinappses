@@ -111,6 +111,7 @@ dialog summary { cursor: pointer; }
 .pen img { display: block; image-rendering: pixelated; pointer-events: none; }
 
 .recent { margin: 10px 0 0; }
+.recent b, .pen-name { text-transform: lowercase; }
 .recent img { vertical-align: middle; image-rendering: pixelated; }
 
 .entry { border-bottom: 1px dashed var(--ink); padding: 8px 0; }
