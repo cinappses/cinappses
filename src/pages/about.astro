@@ -4,13 +4,13 @@ import { getCollection, getEntry, render } from "astro:content";
 import Base from "../layouts/Base.astro";
 
 const { Content } = await render((await getEntry("pages", "about"))!);
-const critters = await getCollection("critters");
+const applings = await getCollection("applings");
 ---
 <Base title="about">
 <Content />
 <h2>friends</h2>
 <div class="pen">
-{critters.map((c) => (
+{applings.map((c) => (
   <a href={c.data.link} data-name={c.data.name} draggable="false">
   <Image src={c.data.image} alt={c.data.name} width={56} draggable="false" />
   </a>

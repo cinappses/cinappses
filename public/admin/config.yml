@@ -23,9 +23,9 @@ collections:
       - { name: alt, label: Alt text, widget: text, required: false }
       - { name: tags, label: Tags, widget: select, multiple: true, options: [illustration, comic, background, concept], required: false }
 
-  - name: critters
-    label: Critters
-    folder: src/content/critters
+  - name: applings
+    label: Applings
+    folder: src/content/applings
     media_folder: img
     public_folder: img
     create: true

@@ -15,8 +15,8 @@ const art = defineCollection({
     }),
 });
 
-const critters = defineCollection({
-  loader: glob({ pattern: "*.md", base: "src/content/critters" }),
+const applings = defineCollection({
+  loader: glob({ pattern: "*.md", base: "src/content/applings" }),
   schema: ({ image }) =>
     z.object({
       name: z.string(),
@@ -40,4 +40,4 @@ const pages = defineCollection({
   schema: z.object({ title: z.string() }),
 });
 
-export const collections = { art, critters, posts, status, pages };
+export const collections = { art, applings, posts, status, pages };
