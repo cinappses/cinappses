@@ -1,0 +1,72 @@
+backend:
+  name: github
+  repo: rosematcha/cinappses
+  branch: main
+
+media_folder: public/uploads
+public_folder: /uploads
+
+collections:
+  - name: art
+    label: Art
+    folder: src/content/art
+    media_folder: img
+    public_folder: img
+    create: true
+    sortable_fields: [date, title]
+    summary: "{{title}} ({{date}})"
+    fields:
+      - { name: title, label: Title }
+      - { name: image, label: Image, widget: image }
+      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD }
+      - { name: caption, label: Caption, required: false }
+      - { name: alt, label: Alt text, widget: text, required: false }
+      - { name: tags, label: Tags, widget: select, multiple: true, options: [illustration, comic, background, concept], required: false }
+
+  - name: critters
+    label: Critters
+    folder: src/content/critters
+    media_folder: img
+    public_folder: img
+    create: true
+    identifier_field: name
+    fields:
+      - { name: name, label: Name }
+      - { name: image, label: Sprite, widget: image }
+      - { name: link, label: Link, required: false }
+
+  - name: status
+    label: Status
+    folder: src/content/status
+    create: true
+    identifier_field: date
+    slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}"
+    summary: "{{date}}"
+    fields:
+      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD }
+      - { name: body, label: Status, widget: markdown }
+
+  - name: posts
+    label: Blog
+    folder: src/content/posts
+    create: true
+    fields:
+      - { name: title, label: Title }
+      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD }
+      - { name: body, label: Post, widget: markdown }
+
+  - name: pages
+    label: Pages
+    files:
+      - name: home
+        label: Home
+        file: src/content/pages/home.md
+        fields:
+          - { name: title, label: Title, widget: hidden }
+          - { name: body, label: Text, widget: markdown }
+      - name: about
+        label: About
+        file: src/content/pages/about.md
+        fields:
+          - { name: title, label: Title, widget: hidden }
+          - { name: body, label: Text, widget: markdown }
