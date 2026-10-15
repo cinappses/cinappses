@@ -11,37 +11,51 @@ const critters = await getCollection("critters");
 <h2>friends</h2>
 <div class="pen">
 {critters.map((c) => (
-  <a href={c.data.link} title={c.data.name} draggable="false">
+  <a href={c.data.link} data-name={c.data.name} draggable="false">
   <Image src={c.data.image} alt={c.data.name} width={56} draggable="false" />
   </a>
 ))}
+<span class="pen-name" hidden></span>
 </div>
 </Base>
 <script>
 const SIZE = 56;
 const R = SIZE / 2;
-const FRICTION = 0.985;
-const BOUNCE = 0.8;
+const FRICTION = 0.9;
+const SPIN_FRICTION = 0.92;
+const BOUNCE = 0.35;
+const MAX_SPEED = 18;
+const DRAG_START = 6;
 
-type Ball = { el: HTMLElement; x: number; y: number; vx: number; vy: number };
+type Ball = { el: HTMLElement; x: number; y: number; vx: number; vy: number; a: number; va: number; face: number };
 
 const pen = document.querySelector<HTMLElement>(".pen")!;
-const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("a")].map((el) => ({
+const links = [...pen.querySelectorAll<HTMLElement>("a")];
+const cols = Math.floor(pen.clientWidth / (SIZE + 12));
+const balls: Ball[] = links.map((el, i) => ({
   el,
-  x: R + Math.random() * (pen.clientWidth - SIZE),
-  y: R + Math.random() * (pen.clientHeight - SIZE),
+  x: R + 6 + (i % cols) * (SIZE + 12) + Math.random() * 8,
+  y: R + 6 + Math.floor(i / cols) * (SIZE + 12) + Math.random() * 8,
   vx: 0,
   vy: 0,
+  a: (Math.random() - 0.5) * 20,
+  va: 0,
+  face: Math.random() < 0.5 ? -1 : 1,
 }));
 let held: Ball | null = null;
-let moved = 0;
+let dragging = false;
+let origin = { x: 0, y: 0 };
 let running = false;
+let hover: Ball | null = null;
+const tag = pen.querySelector<HTMLElement>(".pen-name")!;
+
+const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
 function walls(b: Ball) {
   const w = pen.clientWidth - R;
   const h = pen.clientHeight - R;
-  if (b.x < R || b.x > w) { b.vx *= -BOUNCE; b.x = Math.min(Math.max(b.x, R), w); }
-  if (b.y < R || b.y > h) { b.vy *= -BOUNCE; b.y = Math.min(Math.max(b.y, R), h); }
+  if (b.x < R || b.x > w) { b.vx *= -BOUNCE; b.va += b.vy * 2; b.x = clamp(b.x, R, w); }
+  if (b.y < R || b.y > h) { b.vy *= -BOUNCE; b.va -= b.vx * 2; b.y = clamp(b.y, R, h); }
 }
 
 function collide(a: Ball, b: Ball) {
@@ -54,22 +68,41 @@ function collide(a: Ball, b: Ball) {
   const push = (SIZE - d) / 2;
   a.x -= nx * push; a.y -= ny * push;
   b.x += nx * push; b.y += ny * push;
-  const p = (a.vx - b.vx) * nx + (a.vy - b.vy) * ny;
+  const p = ((a.vx - b.vx) * nx + (a.vy - b.vy) * ny) * (1 + BOUNCE) / 2;
   if (p <= 0) return;
-  a.vx -= p * nx; a.vy -= p * ny;
-  b.vx += p * nx; b.vy += p * ny;
+  const spin = ((a.vx - b.vx) * -ny + (a.vy - b.vy) * nx) * 3;
+  a.vx -= p * nx; a.vy -= p * ny; a.va += spin;
+  b.vx += p * nx; b.vy += p * ny; b.va -= spin;
+}
+
+function move(b: Ball) {
+  if (b === held) { b.va += (b.vx * 4 - b.a) * 0.2; }
+  else { b.x += b.vx; b.y += b.vy; b.vx *= FRICTION; b.vy *= FRICTION; }
+  b.a += b.va;
+  b.va *= SPIN_FRICTION;
+  if (Math.abs(b.vx) > 1.5) b.face = Math.sign(b.vx);
+}
+
+function draw(b: Ball) {
+  b.el.style.transform = `translate(${b.x - R}px, ${b.y - R}px) rotate(${b.a}deg) scaleX(${b.face})`;
+}
+
+function label() {
+  tag.hidden = !hover;
+  if (!hover) return;
+  tag.textContent = hover.el.dataset.name!;
+  tag.style.left = `${hover.x}px`;
+  tag.style.top = `${hover.y - R - 4}px`;
 }
 
 function step() {
-  let energy = 0;
-  for (const b of balls) {
-    if (b !== held) { b.x += b.vx; b.y += b.vy; b.vx *= FRICTION; b.vy *= FRICTION; }
-    walls(b);
-    energy += Math.abs(b.vx) + Math.abs(b.vy);
-  }
+  balls.forEach(move);
+  balls.forEach(walls);
   balls.forEach((a, i) => balls.slice(i + 1).forEach((b) => collide(a, b)));
-  for (const b of balls) b.el.style.transform = `translate(${b.x - R}px, ${b.y - R}px)`;
-  running = !!held || energy > 0.05;
+  balls.forEach(draw);
+  label();
+  const energy = balls.reduce((n, b) => n + Math.abs(b.vx) + Math.abs(b.vy) + Math.abs(b.va), 0);
+  running = !!held || energy > 0.1;
   if (running) requestAnimationFrame(step);
 }
 
@@ -82,26 +115,32 @@ function local(e: PointerEvent) {
   return { x: e.clientX - r.left, y: e.clientY - r.top };
 }
 
+function grab(b: Ball, e: PointerEvent) {
+  held = b;
+  dragging = false;
+  origin = local(e);
+  b.el.setPointerCapture(e.pointerId);
+}
+
+function drag(b: Ball, e: PointerEvent) {
+  const p = local(e);
+  if (!dragging && Math.hypot(p.x - origin.x, p.y - origin.y) < DRAG_START) return;
+  dragging = true;
+  b.vx = clamp(p.x - b.x, -MAX_SPEED, MAX_SPEED);
+  b.vy = clamp(p.y - b.y, -MAX_SPEED, MAX_SPEED);
+  b.x = p.x;
+  b.y = p.y;
+  wake();
+}
+
 balls.forEach((b) => {
-  b.el.onpointerdown = (e) => {
-    held = b;
-    moved = 0;
-    b.vx = b.vy = 0;
-    b.el.setPointerCapture(e.pointerId);
-    wake();
-  };
-  b.el.onpointermove = (e) => {
-    if (held !== b) return;
-    const p = local(e);
-    b.vx = p.x - b.x;
-    b.vy = p.y - b.y;
-    moved += Math.hypot(b.vx, b.vy);
-    b.x = p.x;
-    b.y = p.y;
-  };
+  b.el.onpointerdown = (e) => grab(b, e);
+  b.el.onpointermove = (e) => { if (held === b) drag(b, e); };
   b.el.onpointerup = () => { held = null; };
-  b.el.onclick = (e) => { if (moved > 6) e.preventDefault(); };
+  b.el.onpointerenter = () => { hover = b; label(); };
+  b.el.onpointerleave = () => { if (hover === b) hover = null; label(); };
+  b.el.onclick = (e) => { if (dragging) e.preventDefault(); };
 });
 
-wake();
+balls.forEach(draw);
 </script>
