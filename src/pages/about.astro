@@ -17,6 +17,7 @@ const applings = await getCollection("applings");
 ))}
 <span class="pen-name" hidden></span>
 </div>
+<p class="recent" hidden>recently selected: <img alt="" width="24" height="24"> <b></b>, <a></a></p>
 </Base>
 <script>
 const SIZE = 56;
@@ -34,6 +35,7 @@ type Ball = { el: HTMLElement; x: number; y: number; vx: number; vy: number; fac
 
 const pen = document.querySelector<HTMLElement>(".pen")!;
 const tag = pen.querySelector<HTMLElement>(".pen-name")!;
+const recent = document.querySelector<HTMLElement>(".recent")!;
 const cols = Math.floor(pen.clientWidth / (SIZE + 12));
 pen.style.minHeight = `${Math.ceil(pen.querySelectorAll("a").length / cols) * (SIZE + 12) + 80}px`;
 const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("a")].map((el, i) => ({
@@ -150,7 +152,18 @@ function drag(e: PointerEvent) {
   if (!dragging) dragging = Math.hypot(s.x - press.x, s.y - press.y) > DRAG_START;
 }
 
+function pick(b: Ball) {
+  const link = recent.querySelector("a")!;
+  const href = b.el.getAttribute("href")!;
+  recent.querySelector("img")!.src = b.el.querySelector("img")!.src;
+  recent.querySelector("b")!.textContent = b.el.dataset.name!;
+  link.href = href;
+  link.textContent = href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+  recent.hidden = false;
+}
+
 function release(b: Ball) {
+  if (dragging) pick(b);
   const last = moves[moves.length - 1];
   const live = dragging && !!last && performance.now() - last.t < STALE;
   const peak = moves.reduce((a, m) => (Math.hypot(m.x, m.y) > Math.hypot(a.x, a.y) ? m : a), { x: 0, y: 0, t: 0 });

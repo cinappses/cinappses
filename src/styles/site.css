@@ -110,6 +110,9 @@ dialog summary { cursor: pointer; }
 .pen-name { position: absolute; z-index: 2; padding: 0 6px; background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; font-size: .8em; white-space: nowrap; pointer-events: none; transform: translate(-50%, -100%); }
 .pen img { display: block; image-rendering: pixelated; pointer-events: none; }
 
+.recent { margin: 10px 0 0; }
+.recent img { vertical-align: middle; image-rendering: pixelated; }
+
 .entry { border-bottom: 1px dashed var(--ink); padding: 8px 0; }
 .posts { padding-left: 18px; }
 .soon { text-align: center; padding-top: 20vh; }
