@@ -1,0 +1,13 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../layouts/Base.astro";
+
+const all = (await getCollection("status")).sort((a, b) => +b.data.date - +a.data.date);
+const entries = await Promise.all(all.map(async (s) => ({ date: s.data.date, Content: (await render(s)).Content })));
+---
+<Base title="status">
+<h2>status archive</h2>
+{entries.map(({ date, Content }) => (
+  <article class="entry"><b>{date.toLocaleDateString("en-US", { timeZone: "UTC" })}</b><Content /></article>
+))}
+</Base>

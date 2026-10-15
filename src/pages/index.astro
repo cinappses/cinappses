@@ -1,0 +1,7 @@
+---
+import { getEntry, render } from "astro:content";
+import Base from "../layouts/Base.astro";
+
+const { Content } = await render((await getEntry("pages", "home"))!);
+---
+<Base><Content /></Base>

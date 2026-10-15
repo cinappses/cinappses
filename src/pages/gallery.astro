@@ -1,0 +1,64 @@
+---
+import { getImage, Image } from "astro:assets";
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+
+const art = (await getCollection("art")).sort((a, b) => +b.data.date - +a.data.date);
+const years = Map.groupBy(art, (a) => a.data.date.getUTCFullYear());
+const tags = [...new Set(art.flatMap((a) => a.data.tags))];
+const full = new Map(await Promise.all(art.map(async (a) => [a.id, (await getImage({ src: a.data.image, width: 1600 })).src] as const)));
+---
+<Base title="gallery">
+<div class="tags">
+<button aria-pressed="true" data-tag="">all</button>
+{tags.map((t) => <button aria-pressed="false" data-tag={t}>{t}</button>)}
+</div>
+{[...years].map(([year, pieces]) => (
+  <section>
+  <h2 class="year">{year}</h2>
+  <div class="grid">
+  {pieces.map((a) => (
+    <button data-tags={a.data.tags.join(" ")} data-full={full.get(a.id)} data-cap={a.data.caption ?? a.data.title} data-alt={a.data.alt ?? ""}>
+    <Image src={a.data.image} alt={a.data.alt ?? a.data.title} width={360} height={360} fit="cover" />
+    </button>
+  ))}
+  </div>
+  </section>
+))}
+<dialog>
+<figure>
+<img alt="">
+<figcaption>
+<p></p>
+<details><summary>alt text</summary><p></p></details>
+</figcaption>
+</figure>
+</dialog>
+</Base>
+<script>
+const box = document.querySelector("dialog")!;
+const pic = box.querySelector("img")!;
+const [cap, alt] = box.querySelectorAll("p");
+const thumbs = document.querySelectorAll<HTMLButtonElement>(".grid button");
+
+thumbs.forEach((b) => {
+  b.onclick = () => {
+    pic.src = b.dataset.full!;
+    pic.alt = b.dataset.alt!;
+    cap.textContent = b.dataset.cap!;
+    alt.textContent = b.dataset.alt!;
+    alt.parentElement!.hidden = !b.dataset.alt;
+    box.showModal();
+  };
+});
+
+box.onclick = (e) => e.target === box && box.close();
+
+document.querySelectorAll<HTMLButtonElement>(".tags button").forEach((t, _, all) => {
+  t.onclick = () => {
+    all.forEach((x) => x.setAttribute("aria-pressed", String(x === t)));
+    thumbs.forEach((b) => (b.hidden = !!t.dataset.tag && !b.dataset.tags!.split(" ").includes(t.dataset.tag)));
+    document.querySelectorAll("section").forEach((s) => (s.hidden = !s.querySelector("button:not([hidden])")));
+  };
+});
+</script>

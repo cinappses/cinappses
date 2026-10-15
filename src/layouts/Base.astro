@@ -1,0 +1,52 @@
+---
+import { Image } from "astro:assets";
+import { getCollection, render } from "astro:content";
+import "../styles/site.css";
+import logo from "../assets/logo.png";
+import luci from "../assets/luci.png";
+
+const { title } = Astro.props;
+const [latest] = (await getCollection("status")).sort((a, b) => +b.data.date - +a.data.date);
+const { Content: Status } = await render(latest);
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title ? `${title} | cinappses` : "cinappses"}</title>
+</head>
+<body>
+<header><a href="/"><Image src={logo} alt="cinappses" width={600} /></a></header>
+<div class="site">
+<aside class="doll">
+<div class="status">
+<a href="/status/">{latest.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</a>
+<Status />
+</div>
+<Image src={luci} alt="" width={260} />
+</aside>
+<main><slot /></main>
+<nav>
+<ul>
+<li><a href="/">Home</a></li>
+<li><a href="/about/">About</a></li>
+<li><a href="/guestbook/">Guestbook</a></li>
+</ul>
+<ul>
+<li><a href="/gallery/">Gallery</a></li>
+<li><a href="/scans/">Scans</a></li>
+<li><a href="/blog/">Blog</a></li>
+<li><a href="/comic/">Comic</a></li>
+</ul>
+<p>inquiries at <a href="mailto:cinappses@gmail.com">cinappses@gmail.com</a></p>
+<div class="socials">
+<a href="https://bsky.app/profile/cinappses.bsky.social">bsky</a>
+<a href="https://cinappses.tumblr.com">tumblr</a>
+<a href="https://ko-fi.com/cinappses">ko-fi</a>
+</div>
+</nav>
+</div>
+<footer>&copy; cinappses {new Date().getFullYear()}</footer>
+</body>
+</html>

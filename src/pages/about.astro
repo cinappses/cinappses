@@ -1,0 +1,18 @@
+---
+import { Image } from "astro:assets";
+import { getCollection, getEntry, render } from "astro:content";
+import Base from "../layouts/Base.astro";
+
+const { Content } = await render((await getEntry("pages", "about"))!);
+const critters = await getCollection("critters");
+---
+<Base title="about">
+<Content />
+<h2>friends</h2>
+<div class="pen">
+{critters.map((c, i) => {
+  const img = <Image src={c.data.image} alt={c.data.name} title={c.data.name} width={64} style={`left:${(i * 37) % 85}%;top:${(i * 53) % 70}%;animation-delay:-${i * 0.7}s`} />;
+  return c.data.link ? <a href={c.data.link}>{img}</a> : img;
+})}
+</div>
+</Base>
