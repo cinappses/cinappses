@@ -24,6 +24,7 @@ const SIZE = 56;
 const R = SIZE / 2;
 const FRICTION = 0.97;
 const BOUNCE = 0.6;
+const WALL_BOUNCE = 0.85;
 const MAX_SPEED = 40;
 const DRAG_START = 6;
 const FRAME = 1000 / 60;
@@ -62,8 +63,8 @@ const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), h
 function walls(b: Ball) {
   const w = pen.clientWidth - R;
   const h = pen.clientHeight - R;
-  if (b.x < R || b.x > w) { b.vx *= -BOUNCE; b.x = clamp(b.x, R, w); }
-  if (b.y < R || b.y > h) { b.vy *= -BOUNCE; b.y = clamp(b.y, R, h); }
+  if (b.x < R || b.x > w) { b.vx *= -WALL_BOUNCE; b.x = clamp(b.x, R, w); }
+  if (b.y < R || b.y > h) { b.vy *= -WALL_BOUNCE; b.y = clamp(b.y, R, h); }
 }
 
 function collide(a: Ball, b: Ball) {
