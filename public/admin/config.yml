@@ -3,60 +3,73 @@ backend:
   repo: rosematcha/cinappses
   branch: main
 
+app_title: cinappses
+site_url: https://cinappses.org
+display_url: https://cinappses.org
+editor:
+  preview: false
+
 media_folder: public/uploads
 public_folder: /uploads
 
 collections:
-  - name: art
-    label: Art
-    folder: src/content/art
-    media_folder: img
-    public_folder: img
-    create: true
-    sortable_fields: [date, title]
-    summary: "{{title}} ({{date}})"
-    fields:
-      - { name: title, label: Title }
-      - { name: image, label: Image, widget: image }
-      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD }
-      - { name: caption, label: Caption, required: false }
-      - { name: alt, label: Alt text, widget: text, required: false }
-      - { name: tags, label: Tags, widget: select, multiple: true, options: [illustration, comic, background, concept], required: false }
-
-  - name: applings
-    label: Applings
-    folder: src/content/applings
-    media_folder: img
-    public_folder: img
-    create: true
-    identifier_field: name
-    fields:
-      - { name: name, label: Name }
-      - { name: image, label: Sprite, widget: image }
-      - { name: link, label: Link, required: false }
-
   - name: status
     label: Status
+    icon: chat_bubble
     folder: src/content/status
     create: true
     identifier_field: date
     slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}"
     summary: "{{date}}"
     fields:
-      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD }
-      - { name: body, label: Status, widget: markdown }
+      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
+      - { name: body, label: Status, widget: markdown, buttons: [bold, italic, link], editor_components: [] }
+
+  - name: art
+    label: Art
+    icon: palette
+    folder: src/content/art
+    media_folder: img
+    public_folder: img
+    create: true
+    sortable_fields: [date, title]
+    thumbnail: image
+    summary: "{{title}} ({{date}})"
+    fields:
+      - { name: title, label: Title }
+      - { name: image, label: Image, widget: image }
+      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
+      - { name: caption, label: Caption, required: false }
+      - { name: alt, label: Alt text, widget: text, required: false }
+      - { name: tags, label: Tags, widget: select, multiple: true, options: [illustration, comic, background, concept], required: false }
+
+  - name: applings
+    label: Applings
+    icon: pets
+    folder: src/content/applings
+    media_folder: img
+    public_folder: img
+    create: true
+    identifier_field: name
+    thumbnail: image
+    fields:
+      - { name: name, label: Name }
+      - { name: image, label: Sprite, widget: image }
+      - { name: link, label: Link, required: false }
 
   - name: posts
     label: Blog
+    icon: edit_note
     folder: src/content/posts
     create: true
     fields:
       - { name: title, label: Title }
-      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD }
+      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
       - { name: body, label: Post, widget: markdown }
 
   - name: pages
     label: Pages
+    icon: description
     files:
       - name: home
         label: Home
