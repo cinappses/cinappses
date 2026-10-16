@@ -40,4 +40,14 @@ const pages = defineCollection({
   schema: z.object({ title: z.string() }),
 });
 
-export const collections = { art, applings, posts, status, pages };
+const scans = defineCollection({
+  loader: glob({ pattern: "*.md", base: "src/content/scans" }),
+  schema: z.object({ title: z.string(), date: z.coerce.date(), file: z.string() }),
+});
+
+const guestbook = defineCollection({
+  loader: glob({ pattern: "*.md", base: "src/content/guestbook" }),
+  schema: z.object({ name: z.string(), date: z.coerce.date(), site: z.string().optional(), message: z.string() }),
+});
+
+export const collections = { art, applings, posts, status, pages, scans, guestbook };

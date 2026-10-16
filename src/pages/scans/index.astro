@@ -1,0 +1,12 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../../layouts/Base.astro";
+
+const scans = (await getCollection("scans")).sort((a, b) => +b.data.date - +a.data.date);
+---
+<Base title="scans">
+<h2>scans</h2>
+<ul class="posts">
+{scans.map((s) => <li><a href={`/scans/${s.id}/`}>{s.data.title}</a> <small>{s.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</small></li>)}
+</ul>
+</Base>

@@ -1,4 +1,26 @@
 ---
+import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
+
+const notes = (await getCollection("guestbook")).sort((a, b) => +b.data.date - +a.data.date);
 ---
-<Base title="guestbook"><h2>guestbook</h2><p>guestbook goes here</p></Base>
+<Base title="guestbook">
+<h2>guestbook</h2>
+<form class="sign" method="post" action="/api/sign">
+  <label>name <input name="name" maxlength="40" required></label>
+  <label>website <input name="site" type="url" maxlength="200"></label>
+  <label class="trap" aria-hidden="true">leave empty <input name="phone" tabindex="-1" autocomplete="off"></label>
+  <label>message <textarea name="message" maxlength="1000" rows="4" required></textarea></label>
+  <button>sign</button>
+</form>
+<p class="thanks" hidden>thanks! it'll show up in a minute.</p>
+{notes.map((n) => (
+  <article class="note">
+    <p><b>{n.data.site ? <a href={n.data.site} rel="nofollow ugc">{n.data.name}</a> : n.data.name}</b> <small>{n.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</small></p>
+    <p>{n.data.message}</p>
+  </article>
+))}
+</Base>
+<script>
+if (location.search.includes("signed")) document.querySelector<HTMLElement>(".thanks")!.hidden = false;
+</script>

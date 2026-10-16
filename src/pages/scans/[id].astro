@@ -1,0 +1,18 @@
+---
+import { getCollection, render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+
+export async function getStaticPaths() {
+  return (await getCollection("scans")).map((scan) => ({ params: { id: scan.id }, props: { scan } }));
+}
+
+const { scan } = Astro.props;
+const { Content } = await render(scan);
+---
+<Base title={scan.data.title}>
+<h2>{scan.data.title}</h2>
+<small>{scan.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</small>
+<Content />
+<iframe src={scan.data.file} title={scan.data.title}></iframe>
+<p><a href={scan.data.file}>download</a> · <a href="/scans/">back</a></p>
+</Base>
