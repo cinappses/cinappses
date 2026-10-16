@@ -1,5 +1,5 @@
 ---
+image: img/appling_emberchii.png
 name: luka
-image: img/thing.png
 link: https://emberchii.tumblr.com/
 ---
