@@ -27,6 +27,7 @@ collections:
 
   - name: art
     label: Art
+    label_singular: Art
     icon: palette
     folder: src/content/art
     media_folder: img
@@ -36,15 +37,14 @@ collections:
     thumbnail: image
     summary: "{{title}} ({{date}})"
     fields:
-      - { name: title, label: Title }
-      - { name: image, label: Image, widget: image }
+      - { name: image, label: Image (full size), widget: image, choose_url: false }
+      - { name: title, label: Name }
       - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
-      - { name: caption, label: Caption, required: false }
-      - { name: alt, label: Alt text, widget: text, required: false }
-      - { name: tags, label: Tags, widget: select, multiple: true, options: [illustration, comic, background, concept], required: false }
+      - { name: caption, label: Description, widget: text, required: false }
 
   - name: applings
     label: Applings
+    label_singular: Appling
     icon: pets
     folder: src/content/applings
     media_folder: img
@@ -53,19 +53,54 @@ collections:
     identifier_field: name
     thumbnail: image
     fields:
+      - { name: image, label: Image, widget: image, choose_url: false }
       - { name: name, label: Name }
-      - { name: image, label: Sprite, widget: image }
       - { name: link, label: Link, required: false }
 
   - name: posts
     label: Blog
+    label_singular: Post
     icon: edit_note
     folder: src/content/posts
+    media_folder: img
+    public_folder: img
     create: true
+    sortable_fields: [date, title]
+    summary: "{{title}} ({{date}})"
     fields:
       - { name: title, label: Title }
       - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
       - { name: body, label: Post, widget: markdown }
+
+  - name: scans
+    label: Scans
+    label_singular: Scan
+    icon: menu_book
+    folder: src/content/scans
+    media_folder: /public/scans
+    public_folder: /scans
+    create: true
+    sortable_fields: [date, title]
+    summary: "{{title}} ({{date}})"
+    fields:
+      - { name: file, label: PDF, widget: file, accept: application/pdf, choose_url: false }
+      - { name: title, label: Title }
+      - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
+      - { name: body, label: Notes, widget: markdown, required: false }
+
+  - name: guestbook
+    label: Guestbook
+    label_singular: Entry
+    icon: forum
+    folder: src/content/guestbook
+    create: false
+    sortable_fields: [date]
+    summary: "{{name}}: {{message}}"
+    fields:
+      - { name: name, label: Name }
+      - { name: date, label: Date, widget: datetime }
+      - { name: site, label: Website, required: false }
+      - { name: message, label: Message, widget: text }
 
   - name: pages
     label: Pages
