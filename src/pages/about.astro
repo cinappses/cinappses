@@ -12,9 +12,9 @@ const applings = await getCollection("applings");
 <h2>friends</h2>
 <div class="pen">
 {applings.map((c) => (
-  <a href={c.data.link} data-name={c.data.name} draggable="false">
+  <button type="button" data-link={c.data.link} data-name={c.data.name} draggable="false">
   <Image src={c.data.image ?? placeholder} alt={c.data.name} width={56} draggable="false" />
-  </a>
+  </button>
 ))}
 <span class="pen-name" hidden></span>
 </div>
@@ -39,8 +39,8 @@ const pen = document.querySelector<HTMLElement>(".pen")!;
 const tag = pen.querySelector<HTMLElement>(".pen-name")!;
 const recent = document.querySelector<HTMLElement>(".recent")!;
 const cols = Math.floor(pen.clientWidth / (SIZE + 12));
-pen.style.minHeight = `${Math.ceil(pen.querySelectorAll("a").length / cols) * (SIZE + 12) + 80}px`;
-const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("a")].map((el, i) => ({
+pen.style.minHeight = `${Math.ceil(pen.querySelectorAll("button").length / cols) * (SIZE + 12) + 80}px`;
+const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("button")].map((el, i) => ({
   el,
   x: R + 6 + (i % cols) * (SIZE + 12) + Math.random() * 8,
   y: R + 6 + Math.floor(i / cols) * (SIZE + 12) + Math.random() * 8,
@@ -53,8 +53,6 @@ let hover: Ball | null = null;
 let dragging = false;
 let pointer = { x: 0, y: 0, t: 0 };
 let moves: { x: number; y: number; t: number }[] = [];
-let named: Ball | null = null;
-let touch = false;
 let press = { x: 0, y: 0 };
 let offset = { x: 0, y: 0 };
 let running = false;
@@ -133,7 +131,7 @@ function sample(e: PointerEvent) {
 }
 
 function grab(b: Ball, e: PointerEvent) {
-  touch = e.pointerType === "touch";
+  pick(b);
   held = b;
   dragging = false;
   pointer = sample(e);
@@ -156,7 +154,7 @@ function drag(e: PointerEvent) {
 
 function pick(b: Ball) {
   const link = recent.querySelector("a")!;
-  const href = b.el.getAttribute("href") ?? "";
+  const href = b.el.dataset.link ?? "";
   recent.querySelector("img")!.src = b.el.querySelector("img")!.src;
   recent.querySelector("b")!.textContent = b.el.dataset.name!;
   link.href = href;
@@ -166,7 +164,6 @@ function pick(b: Ball) {
 }
 
 function release(b: Ball) {
-  if (dragging) pick(b);
   const last = moves[moves.length - 1];
   const live = dragging && !!last && performance.now() - last.t < STALE;
   const peak = moves.reduce((a, m) => (Math.hypot(m.x, m.y) > Math.hypot(a.x, a.y) ? m : a), { x: 0, y: 0, t: 0 });
@@ -186,10 +183,7 @@ balls.forEach((b) => {
     hover = null;
     label();
   };
-  b.el.onclick = (e) => {
-    if (dragging || (touch && named !== b)) e.preventDefault();
-    if (touch && !dragging) { named = hover = b; label(); }
-  };
+  b.el.onclick = () => pick(b);
 });
 
 balls.forEach(draw);
