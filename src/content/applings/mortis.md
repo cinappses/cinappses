@@ -1,4 +1,5 @@
 ---
+image: img/appling_leo.png
 name: mortis
-image: img/thing.png
+link: ''
 ---
