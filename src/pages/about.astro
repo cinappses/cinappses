@@ -2,6 +2,7 @@
 import { Image } from "astro:assets";
 import { getCollection, getEntry, render } from "astro:content";
 import Base from "../layouts/Base.astro";
+import placeholder from "../assets/appling-placeholder.png";
 
 const { Content } = await render((await getEntry("pages", "about"))!);
 const applings = await getCollection("applings");
@@ -12,7 +13,7 @@ const applings = await getCollection("applings");
 <div class="pen">
 {applings.map((c) => (
   <a href={c.data.link} data-name={c.data.name} draggable="false">
-  <Image src={c.data.image} alt={c.data.name} width={56} draggable="false" />
+  <Image src={c.data.image ?? placeholder} alt={c.data.name} width={56} draggable="false" />
   </a>
 ))}
 <span class="pen-name" hidden></span>

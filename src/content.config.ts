@@ -20,7 +20,10 @@ const applings = defineCollection({
   schema: ({ image }) =>
     z.object({
       name: z.string(),
-      image: image(),
+      image: z.preprocess(
+        (value) => value === "" || value === null ? undefined : value,
+        image().optional(),
+      ),
       link: z.string().optional(),
     }),
 });

@@ -53,7 +53,7 @@ collections:
     identifier_field: name
     thumbnail: image
     fields:
-      - { name: image, label: Image, widget: image, choose_url: false }
+      - { name: image, label: Image, widget: image, choose_url: false, required: false }
       - { name: name, label: Name }
       - { name: link, label: Link, required: false }
 
