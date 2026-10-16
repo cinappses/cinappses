@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: rosematcha/cinappses
+  repo: cinappses/cinappses
   branch: main
 
 app_title: cinappses
