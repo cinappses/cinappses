@@ -1,5 +1,5 @@
 ---
+image: img/appling_zee.png
 name: zee
-image: img/thing.png
 link: https://terraodyssey.tumblr.com/
 ---
