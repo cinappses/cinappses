@@ -1,5 +1,5 @@
 ---
+image: img/appling_sihl.png
 name: sihl
-image: img/thing.png
 link: https://toyhou.se/dotsihl
 ---
