@@ -40,7 +40,7 @@ test("applings fall back to a site asset when their image is absent or cleared",
   });
 
   const html = await readFile(join(root, "dist/about/index.html"), "utf8");
-  const rendered = new Map([...html.matchAll(/<a\b[^>]*data-name="([^"]+)"[^>]*>\s*<img\b[^>]*src="([^"]+)"/g)]
+  const rendered = new Map([...html.matchAll(/<button\b[^>]*data-name="([^"]+)"[^>]*>\s*<img\b[^>]*src="([^"]+)"/g)]
     .map((match) => [match[1], match[2]]));
 
   assert.equal(rendered.size, images.size);
