@@ -1,5 +1,5 @@
 ---
+image: img/appling_luvey.png
 name: luvey
-image: img/thing.png
 link: https://www.youtube.com/@luveygold
 ---
