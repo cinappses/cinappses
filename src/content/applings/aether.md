@@ -1,5 +1,5 @@
 ---
-image: img/thing.png
+image: img/appling_aether.png
 name: aether
 link: ''
 ---
