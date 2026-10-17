@@ -1,5 +1,5 @@
 ---
+image: img/appling_stabbyness.png
 name: jay
-image: img/thing.png
 link: https://bsky.app/profile/stabbyness.bsky.social
 ---
