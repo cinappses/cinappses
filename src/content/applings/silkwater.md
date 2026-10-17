@@ -1,5 +1,5 @@
 ---
+image: img/appling_silk.png
 name: silk
-image: img/thing.png
 link: https://www.tumblr.com/silkwatervenus
 ---
