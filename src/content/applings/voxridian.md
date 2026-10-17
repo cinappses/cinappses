@@ -1,5 +1,5 @@
 ---
+image: img/appling_braeden.png
 name: braeden
-image: img/thing.png
 link: https://www.youtube.com/@Voxridian
 ---
