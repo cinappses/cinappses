@@ -1,5 +1,5 @@
 ---
+image: img/appling_aloha.png
 name: aloha
-image: img/thing.png
 link: https://bsky.app/profile/thataloha.bsky.social
 ---
