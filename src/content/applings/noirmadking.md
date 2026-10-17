@@ -1,5 +1,5 @@
 ---
+image: img/appling_noir.png
 name: noir
-image: img/thing.png
 link: https://x.com/NoirMadKing
 ---
