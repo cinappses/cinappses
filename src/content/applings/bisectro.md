@@ -1,5 +1,5 @@
 ---
+image: img/bisectro_appling.png
 name: renee
-image: img/thing.png
 link: https://bsky.app/profile/bisectro.bsky.social
 ---
