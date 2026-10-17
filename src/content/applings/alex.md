@@ -1,4 +1,5 @@
 ---
+image: img/appling_alex.png
 name: alex
-image: img/thing.png
+link: ''
 ---
