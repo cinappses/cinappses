@@ -1,5 +1,5 @@
 ---
+image: img/appling_scootus.png
 name: scootus
-image: img/thing.png
 link: https://bsky.app/profile/scootusvo.bsky.social
 ---
