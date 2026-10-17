@@ -1,5 +1,5 @@
 ---
+image: img/appling_rodion.png
 name: rodion
-image: img/thing.png
 link: https://bsky.app/profile/liliosangre.bsky.social
 ---
