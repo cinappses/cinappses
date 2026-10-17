@@ -1,5 +1,5 @@
 ---
+image: img/appling_sleepi.png
 name: sleepi
-image: img/thing.png
 link: https://sleepiinsomnicat.tumblr.com/
 ---
