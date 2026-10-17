@@ -1,5 +1,5 @@
 ---
+image: img/appling_pujee.png
 name: pujee
-image: img/thing.png
 link: https://bsky.app/profile/pairofpujee.bsky.social
 ---
