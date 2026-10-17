@@ -1,5 +1,5 @@
 ---
+image: img/appling_leaf.png
 name: leaf
-image: img/thing.png
 link: https://bsky.app/profile/baileafyman.bsky.social
 ---
