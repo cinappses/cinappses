@@ -99,7 +99,10 @@ section:first-of-type .year { margin-top: 0; }
 dialog { border: 2px solid var(--ink); padding: 16px; max-width: min(1000px, 92vw); background: var(--paper); }
 dialog::backdrop { background: #1d1410cc; }
 dialog figure { margin: 0; }
-dialog img { max-height: 72vh; display: block; margin: 0 auto; }
+dialog .artwork { position: relative; max-width: 100%; margin: 0 auto; }
+dialog .artwork img { width: 100%; height: 100%; object-fit: contain; display: block; }
+dialog .full { position: absolute; inset: 0; }
+dialog .full[hidden] { display: none; }
 dialog figcaption { border-top: 2px solid var(--ink); margin-top: 12px; padding-top: 8px; }
 dialog summary { cursor: pointer; }
 
