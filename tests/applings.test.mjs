@@ -22,7 +22,7 @@ test("applings fall back to a site asset when their image is absent or cleared",
   const applings = join(root, "src/content/applings");
   await rm(applings, { recursive: true });
   await mkdir(join(applings, "img"), { recursive: true });
-  await cp(join(project, "src/assets/doll.png"), join(applings, "img/custom.png"));
+  await cp(join(project, "src/assets/logo.png"), join(applings, "img/custom.png"));
 
   const images = new Map([
     ["missing", ""],
