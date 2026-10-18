@@ -1,8 +1,6 @@
 ---
-import { Image } from "astro:assets";
 import { getCollection, render } from "astro:content";
 import "../styles/site.css";
-import logo from "../assets/logo.png";
 
 const { title } = Astro.props;
 const [latest] = (await getCollection("status")).sort((a, b) => +b.data.date - +a.data.date);
@@ -16,7 +14,7 @@ const { Content: Status } = await render(latest);
 <title>{title ? `${title} | cinappses` : "cinappses"}</title>
 </head>
 <body>
-<header><a href="/"><Image src={logo} alt="cinappses" width={600} /></a></header>
+<header><a href="/"><picture class="logo"><source srcset="/logo.webp" type="image/webp"><img src="/logo.jpg" alt="cinappses" width="1600" height="907"></picture><picture class="logo-hover"><source srcset="/logo-hover.webp" type="image/webp"><img src="/logo-hover.jpg" alt="" width="1600" height="907"></picture></a></header>
 <div class="site">
 <aside class="doll">
 <div class="status">

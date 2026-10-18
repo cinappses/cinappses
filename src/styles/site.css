@@ -19,7 +19,11 @@ a:hover { color: #c8662a; }
 img { max-width: 100%; height: auto; }
 
 header { text-align: center; padding: 12px 0 4px; }
-header img { width: min(560px, 90vw); }
+header a { position: relative; display: inline-block; width: min(560px, 90vw); }
+header picture { display: block; }
+header .logo-hover { position: absolute; inset: 0; opacity: 0; }
+header a:hover .logo-hover { opacity: 1; }
+header img { display: block; width: 100%; }
 
 .site {
   display: grid;
