@@ -1,12 +1,13 @@
 ---
-import { getImage, Image } from "astro:assets";
+import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
+import { galleryImage } from "../lib/gallery";
 
 const art = (await getCollection("art")).sort((a, b) => +b.data.date - +a.data.date);
 const years = Map.groupBy(art, (a) => a.data.date.getUTCFullYear());
 const tags = [...new Set(art.flatMap((a) => a.data.tags))];
-const full = new Map(await Promise.all(art.map(async (a) => [a.id, (await getImage({ src: a.data.image, width: 1600 })).src] as const)));
+const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galleryImage(a.data.image)] as const)));
 ---
 <Base title="gallery">
 <div class="tags">
@@ -17,37 +18,87 @@ const full = new Map(await Promise.all(art.map(async (a) => [a.id, (await getIma
   <section>
   <h2 class="year">{year}</h2>
   <div class="grid">
-  {pieces.map((a) => (
-    <button data-tags={a.data.tags.join(" ")} data-full={full.get(a.id)} data-cap={a.data.caption ?? a.data.title} data-alt={a.data.alt ?? ""}>
-    <Image src={a.data.image} alt={a.data.alt ?? a.data.title} width={360} height={360} fit="cover" />
+  {pieces.map((a) => {
+    const image = images.get(a.id)!;
+    const size = Math.min(360, a.data.image.width, a.data.image.height);
+    const widths = [...new Set([180, 360, 540].map((width) => Math.min(width, a.data.image.width, a.data.image.height)))];
+    const eager = art.indexOf(a) < 4;
+    return (
+    <button data-tags={a.data.tags.join(" ")} data-full={image.src} data-srcset={image.srcset} data-sizes={image.sizes} data-preview={image.preview} data-width={image.width} data-height={image.height} data-original={image.original} data-cap={a.data.caption ?? a.data.title} data-alt={a.data.alt ?? ""}>
+    <Image src={a.data.image} alt={a.data.alt ?? a.data.title} width={size} height={size} fit="cover" widths={widths} sizes={eager ? "(max-width: 900px) 240px, 180px" : "auto, (max-width: 900px) 240px, 180px"} loading={eager ? "eager" : "lazy"} />
     </button>
-  ))}
+    );
+  })}
   </div>
   </section>
 ))}
 <dialog>
 <figure>
-<img alt="">
+<div class="artwork"><img class="preview" alt=""><img class="full" alt=""></div>
 <figcaption>
 <p></p>
 <details><summary>alt text</summary><p></p></details>
+<a download>download original</a>
 </figcaption>
 </figure>
 </dialog>
 </Base>
 <script>
 const box = document.querySelector("dialog")!;
-const pic = box.querySelector("img")!;
+const pic = box.querySelector<HTMLImageElement>(".full")!;
+const preview = box.querySelector<HTMLImageElement>(".preview")!;
+const artwork = box.querySelector<HTMLElement>(".artwork")!;
+const download = box.querySelector("a")!;
 const [cap, alt] = box.querySelectorAll("p");
 const thumbs = document.querySelectorAll<HTMLButtonElement>(".grid button");
 
+function loadImage(image: HTMLImageElement, button: HTMLButtonElement) {
+  image.sizes = button.dataset.sizes!;
+  image.srcset = button.dataset.srcset!;
+  image.src = button.dataset.full!;
+}
+
+const warmed = new Set<string>();
+function warm(button: HTMLButtonElement) {
+  const connection = (navigator as Navigator & { connection?: { saveData: boolean; effectiveType: string } }).connection;
+  if (connection?.saveData || connection?.effectiveType.includes("2g")) return;
+  const src = button.dataset.full!;
+  if (warmed.has(src)) return;
+  warmed.add(src);
+  loadImage(new window.Image(), button);
+}
+
 thumbs.forEach((b) => {
+  let timer: ReturnType<typeof setTimeout>;
+  b.onpointerenter = (e) => {
+    if (e.pointerType === "mouse") timer = setTimeout(() => warm(b), 150);
+  };
+  b.onpointerleave = () => clearTimeout(timer);
+  b.onfocus = () => warm(b);
   b.onclick = () => {
-    pic.src = b.dataset.full!;
+    pic.removeAttribute("srcset");
+    pic.removeAttribute("src");
+    pic.hidden = true;
+    preview.style.visibility = "visible";
+    pic.onload = () => {
+      pic.hidden = false;
+      preview.style.visibility = "hidden";
+    };
+    pic.onerror = () => {
+      pic.hidden = true;
+      preview.style.visibility = "visible";
+    };
+    pic.width = Number(b.dataset.width);
+    pic.height = Number(b.dataset.height);
+    artwork.style.width = b.dataset.sizes!;
+    artwork.style.aspectRatio = `${pic.width} / ${pic.height}`;
+    preview.src = b.dataset.preview!;
     pic.alt = b.dataset.alt!;
+    download.href = b.dataset.original!;
     cap.textContent = b.dataset.cap!;
     alt.textContent = b.dataset.alt!;
     alt.parentElement!.hidden = !b.dataset.alt;
+    loadImage(pic, b);
     box.showModal();
   };
 });
