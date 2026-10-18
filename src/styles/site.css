@@ -31,7 +31,7 @@ header img { width: min(560px, 90vw); }
 }
 
 .doll { position: sticky; top: 16px; }
-.doll > img { display: block; animation: bob 3s ease-in-out infinite; }
+.doll > img { display: block; max-width: none; margin-left: 4px; animation: bob 3s ease-in-out infinite; }
 
 .status {
   position: relative;
