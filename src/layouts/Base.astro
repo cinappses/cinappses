@@ -3,7 +3,6 @@ import { Image } from "astro:assets";
 import { getCollection, render } from "astro:content";
 import "../styles/site.css";
 import logo from "../assets/logo.png";
-import doll from "../assets/doll.png";
 
 const { title } = Astro.props;
 const [latest] = (await getCollection("status")).sort((a, b) => +b.data.date - +a.data.date);
@@ -24,7 +23,12 @@ const { Content: Status } = await render(latest);
 <a href="/status/">{latest.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</a>
 <Status />
 </div>
-<Image src={doll} alt="" width={460} />
+<img src="/doll.webp" alt="" width="230" height="326" />
+<script>
+document.querySelector(".doll > img")?.addEventListener("contextmenu", (e) => {
+  (e.currentTarget as HTMLImageElement).src = "/doll.gif";
+}, { once: true });
+</script>
 </aside>
 <main><slot /></main>
 <nav>
