@@ -89,7 +89,9 @@ thumbs.forEach((b) => {
   };
 });
 
-box.onclick = (e) => e.target === box && box.close();
+box.onclick = (e) => {
+  if (e.target === box) box.close();
+};
 
 document.querySelectorAll<HTMLButtonElement>(".tags button").forEach((t, _, all) => {
   t.onclick = () => {
