@@ -20,6 +20,5 @@ export async function galleryImage(image: ImageMetadata) {
     srcset: variants.map((variant, i) => `${variant.src} ${widths[i]}w`).join(", "),
     sizes: `min(${width}px, 960px, calc(92vw - 36px), ${72 * image.width / image.height}vh)`,
     preview: preview.src,
-    original: image.src,
   };
 }
