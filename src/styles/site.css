@@ -3,6 +3,7 @@
   --ink: #1d1410;
   --orange: #f1a164;
   --paper: #fffaf0;
+  --rust: #a8501c;
   --boing: cubic-bezier(.3, 1.8, .5, 1);
   --spring: cubic-bezier(.3, 1.5, .5, 1);
 }
@@ -17,7 +18,7 @@ body {
 }
 
 a { color: inherit; text-decoration-color: var(--orange); text-decoration-thickness: 2px; transition: color .2s; }
-a:hover { color: #c8662a; }
+a:hover { color: var(--rust); }
 img { max-width: 100%; height: auto; }
 
 header { text-align: center; padding: 12px 0 4px; }
@@ -88,7 +89,7 @@ nav ul:first-child { transform: rotate(1deg); }
 nav ul + ul { transform: rotate(-.8deg); }
 nav li { font-size: 1.35em; text-transform: uppercase; letter-spacing: 1px; }
 nav li a { text-decoration: none; display: inline-block; transform-origin: 0 100%; transition: color .2s, translate .3s var(--spring), rotate .3s var(--spring), scale .3s var(--spring); }
-nav li a:hover { color: var(--orange); translate: 4px; rotate: -2deg; }
+nav li a:hover { color: var(--rust); translate: 4px; rotate: -2deg; }
 nav li a:active { scale: 1.06 .92; transition-duration: .08s; }
 nav p { font-size: .85em; margin: 8px 0; }
 .socials { display: flex; gap: 8px; }
