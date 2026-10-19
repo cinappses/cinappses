@@ -2,6 +2,7 @@ backend:
   name: github
   repo: cinappses/cinappses
   branch: main
+  skip_ci: true
 
 app_title: cinappses
 site_url: https://cinappses.org
