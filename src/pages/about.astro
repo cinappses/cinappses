@@ -18,7 +18,7 @@ const applings = await getCollection("applings");
 ))}
 <span class="pen-name" hidden></span>
 </div>
-<p class="recent" hidden>selected appling: <img alt="" width="24" height="24"> <b></b><span>, <a></a></span></p>
+<div aria-live="polite"><p class="recent" hidden>selected appling: <img alt="" width="24" height="24"> <b></b><span>, <a></a></span></p></div>
 </Base>
 <script>
 const SIZE = 56;
@@ -197,6 +197,8 @@ balls.forEach((b) => {
     hover = null;
     label();
   };
+  b.el.onfocus = () => { hover = b; label(); };
+  b.el.onblur = () => { if (hover === b) { hover = null; label(); } };
   b.el.onclick = () => pick(b);
 });
 
