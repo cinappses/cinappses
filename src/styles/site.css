@@ -23,6 +23,7 @@ a:is(:hover, :focus-visible) { color: var(--rust); }
 img { max-width: 100%; height: auto; }
 
 header { text-align: center; padding: 12px 0 4px; }
+header h1 { margin: 0; font-size: 1em; }
 header a { display: inline-block; width: min(55vw, 308px); transition: rotate .4s var(--spring), scale .4s var(--spring); }
 header a:is(:hover, :focus-visible) { rotate: -1deg; scale: 1.02; }
 header a:active { scale: 1.04 .96; transition-duration: .08s; }
