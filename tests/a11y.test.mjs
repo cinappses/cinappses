@@ -23,19 +23,19 @@ test("built pages keep their accessibility markup", async (t) => {
     const html = await readFile(join(out, page), "utf8");
     assert.equal(html.match(/<h1\b/g)?.length, 1, page);
     assert.match(html, /<a class="skip" href="#content">/, page);
-    assert.match(html, /<main id="content" tabindex="0">/, page);
+    assert.match(html, /<main [^>]*id="content" tabindex="0">/, page);
     assert.doesNotMatch(html, /href="javascript:/, page);
   }
 
-  const gallery = await readFile(join(out, "gallery/index.html"), "utf8");
+  const gallery = await readFile(join(out, "gallery.html"), "utf8");
   assert.match(gallery, /<dialog aria-labelledby="caption">/);
   assert.match(gallery, /<form method="dialog"><button class="close">close<\/button><\/form>/);
 
-  const guestbook = await readFile(join(out, "guestbook/index.html"), "utf8");
+  const guestbook = await readFile(join(out, "guestbook.html"), "utf8");
   assert.match(guestbook, /name="name"[^>]*autocomplete="name"/);
   assert.match(guestbook, /name="site"[^>]*autocomplete="url"/);
   assert.match(guestbook, /class="thanks" role="status"/);
 
-  const about = await readFile(join(out, "about/index.html"), "utf8");
+  const about = await readFile(join(out, "about.html"), "utf8");
   assert.match(about, /<div aria-live="polite"><p class="recent"/);
 });

@@ -16,7 +16,7 @@ const base64 = (text: string) => btoa(String.fromCharCode(...new TextEncoder().e
 
 export const onRequest = async ({ request, env }: { request: Request; env: Env }) => {
   const body = request.method === "POST" ? entry(await request.formData()) : null;
-  if (!body) return Response.redirect(new URL("/guestbook/", request.url).href, 303);
+  if (!body) return Response.redirect(new URL("/guestbook", request.url).href, 303);
   const path = `src/content/guestbook/${Date.now()}.md`;
   const res = await fetch(`https://api.github.com/repos/${env.GITHUB_REPO}/contents/${path}`, {
     method: "PUT",
@@ -24,6 +24,6 @@ export const onRequest = async ({ request, env }: { request: Request; env: Env }
     body: JSON.stringify({ message: "guestbook: new entry", content: base64(body) }),
   });
   return res.ok
-    ? Response.redirect(new URL("/guestbook/?signed", request.url).href, 303)
+    ? Response.redirect(new URL("/guestbook?signed", request.url).href, 303)
     : new Response("couldn't sign, try again later", { status: 502 });
 };

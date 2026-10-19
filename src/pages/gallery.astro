@@ -44,60 +44,64 @@ const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galle
 </dialog>
 </Base>
 <script>
-const box = document.querySelector("dialog")!;
-const artwork = box.querySelector<HTMLElement>(".artwork")!;
-const [cap, alt] = box.querySelectorAll("figcaption p");
-const thumbs = document.querySelectorAll<HTMLButtonElement>(".grid button");
-const images = new Map<HTMLButtonElement, HTMLImageElement>();
+document.addEventListener("astro:page-load", () => {
+  const found = document.querySelector("dialog");
+  if (!found) return;
+  const box = found;
+  const artwork = box.querySelector<HTMLElement>(".artwork")!;
+  const [cap, alt] = box.querySelectorAll("figcaption p");
+  const thumbs = document.querySelectorAll<HTMLButtonElement>(".grid button");
+  const images = new Map<HTMLButtonElement, HTMLImageElement>();
 
-function full(button: HTMLButtonElement) {
-  const cached = images.get(button);
-  if (cached) return cached;
-  const image = new window.Image(Number(button.dataset.width), Number(button.dataset.height));
-  image.alt = button.querySelector("img")!.alt;
-  image.sizes = button.dataset.sizes!;
-  image.srcset = button.dataset.srcset!;
-  image.src = button.dataset.full!;
-  image.decode().then(() => (image.dataset.ready = ""), () => images.delete(button));
-  images.set(button, image);
-  return image;
-}
+  function full(button: HTMLButtonElement) {
+    const cached = images.get(button);
+    if (cached) return cached;
+    const image = new window.Image(Number(button.dataset.width), Number(button.dataset.height));
+    image.alt = button.querySelector("img")!.alt;
+    image.sizes = button.dataset.sizes!;
+    image.srcset = button.dataset.srcset!;
+    image.src = button.dataset.full!;
+    image.decode().then(() => (image.dataset.ready = ""), () => images.delete(button));
+    images.set(button, image);
+    return image;
+  }
 
-function warm(button: HTMLButtonElement) {
-  const connection = (navigator as Navigator & { connection?: { saveData: boolean; effectiveType: string } }).connection;
-  if (!connection?.saveData && !connection?.effectiveType.includes("2g")) full(button);
-}
+  function warm(button: HTMLButtonElement) {
+    const connection = (navigator as Navigator & { connection?: { saveData: boolean; effectiveType: string } }).connection;
+    if (!connection?.saveData && !connection?.effectiveType.includes("2g")) full(button);
+  }
 
-thumbs.forEach((b) => {
-  let timer: ReturnType<typeof setTimeout>;
-  b.onpointerenter = (e) => {
-    if (e.pointerType === "mouse") timer = setTimeout(() => warm(b), 60);
+  thumbs.forEach((b) => {
+    let timer: ReturnType<typeof setTimeout>;
+    b.onpointerenter = (e) => {
+      if (e.pointerType === "mouse") timer = setTimeout(() => warm(b), 60);
+    };
+    b.onpointerleave = () => clearTimeout(timer);
+    b.onpointerdown = () => full(b);
+    b.onfocus = () => warm(b);
+    b.onclick = () => {
+      artwork.style.width = b.dataset.sizes!;
+      artwork.style.aspectRatio = `${b.dataset.width} / ${b.dataset.height}`;
+      artwork.style.setProperty("--placeholder", `url(${b.dataset.placeholder})`);
+      artwork.replaceChildren(full(b));
+      cap.textContent = b.dataset.cap!;
+      alt.textContent = b.dataset.alt!;
+      alt.parentElement!.hidden = !b.dataset.alt;
+      box.showModal();
+      box.scrollTop = 0;
+    };
+  });
+
+  box.onclick = (e) => {
+    if (e.target === box) box.close();
   };
-  b.onpointerleave = () => clearTimeout(timer);
-  b.onpointerdown = () => full(b);
-  b.onfocus = () => warm(b);
-  b.onclick = () => {
-    artwork.style.width = b.dataset.sizes!;
-    artwork.style.aspectRatio = `${b.dataset.width} / ${b.dataset.height}`;
-    artwork.style.setProperty("--placeholder", `url(${b.dataset.placeholder})`);
-    artwork.replaceChildren(full(b));
-    cap.textContent = b.dataset.cap!;
-    alt.textContent = b.dataset.alt!;
-    alt.parentElement!.hidden = !b.dataset.alt;
-    box.showModal();
-    box.scrollTop = 0;
-  };
-});
 
-box.onclick = (e) => {
-  if (e.target === box) box.close();
-};
-
-document.querySelectorAll<HTMLButtonElement>(".tags button").forEach((t, _, all) => {
-  t.onclick = () => {
-    all.forEach((x) => x.setAttribute("aria-pressed", String(x === t)));
-    thumbs.forEach((b) => (b.hidden = !!t.dataset.tag && !b.dataset.tags!.split(" ").includes(t.dataset.tag)));
-    document.querySelectorAll("section").forEach((s) => (s.hidden = !s.querySelector("button:not([hidden])")));
-  };
+  document.querySelectorAll<HTMLButtonElement>(".tags button").forEach((t, _, all) => {
+    t.onclick = () => {
+      all.forEach((x) => x.setAttribute("aria-pressed", String(x === t)));
+      thumbs.forEach((b) => (b.hidden = !!t.dataset.tag && !b.dataset.tags!.split(" ").includes(t.dataset.tag)));
+      document.querySelectorAll("section").forEach((s) => (s.hidden = !s.querySelector("button:not([hidden])")));
+    };
+  });
 });
 </script>

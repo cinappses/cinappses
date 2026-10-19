@@ -22,5 +22,8 @@ const notes = (await getCollection("guestbook")).sort((a, b) => +b.data.date - +
 ))}
 </Base>
 <script>
-if (location.search.includes("signed")) document.querySelector<HTMLElement>(".thanks")!.hidden = false;
+document.addEventListener("astro:page-load", () => {
+  const thanks = document.querySelector<HTMLElement>(".thanks");
+  if (thanks && location.search.includes("signed")) thanks.hidden = false;
+});
 </script>

@@ -14,5 +14,5 @@ const { Content } = await render(scan);
 <small>{scan.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</small>
 <Content />
 <iframe src={scan.data.file} title={scan.data.title}></iframe>
-<p><a href={scan.data.file}>download</a> · <a href="/scans/">back</a></p>
+<p><a href={scan.data.file}>download</a> · <a href="/scans">back</a></p>
 </Base>

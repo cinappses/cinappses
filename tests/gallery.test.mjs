@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
@@ -12,12 +11,11 @@ const run = promisify(execFile);
 
 test("gallery builds responsive images with inline placeholders", async (t) => {
   const project = fileURLToPath(new URL("../", import.meta.url));
-  const root = await mkdtemp(join(tmpdir(), "cinappses-gallery-"));
+  const root = await mkdtemp(join(project, "node_modules/.gallery-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   for (const path of ["src", "public", "package.json", "astro.config.mjs", "tsconfig.json"]) {
     await cp(join(project, path), join(root, path), { recursive: true });
   }
-  await symlink(join(project, "node_modules"), join(root, "node_modules"), "dir");
   const art = join(root, "src/content/art");
   await rm(art, { recursive: true });
   await mkdir(join(art, "img"), { recursive: true });
@@ -39,7 +37,7 @@ test("gallery builds responsive images with inline placeholders", async (t) => {
     timeout: 90_000,
   });
 
-  const html = await readFile(join(root, "dist/gallery/index.html"), "utf8");
+  const html = await readFile(join(root, "dist/gallery.html"), "utf8");
   const buttons = [...html.matchAll(/<button\b[^>]*data-full="[^"]+"[^>]*>/g)];
   assert.equal(buttons.length, originals.size);
   for (const [button] of buttons) {
