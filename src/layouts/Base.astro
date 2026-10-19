@@ -14,6 +14,7 @@ const { Content: Status } = await render(latest);
 <title>{title ? `${title} | cinappses` : "cinappses"}</title>
 </head>
 <body>
+<a class="skip" href="#content">skip to content</a>
 <header><h1><a href="/"><picture><source srcset="/logo.webp" type="image/webp"><img src="/logo.jpg" alt="cinappses" width="1600" height="781"></picture></a></h1></header>
 <div class="site">
 <aside class="doll">
@@ -28,7 +29,7 @@ document.querySelector(".doll > img")?.addEventListener("contextmenu", (e) => {
 }, { once: true });
 </script>
 </aside>
-<main><slot /></main>
+<main id="content" tabindex="0"><slot /></main>
 <nav>
 <ul>
 <li><a href="/">Home</a></li>
