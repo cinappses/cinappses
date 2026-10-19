@@ -10,7 +10,7 @@ import sharp from "sharp";
 
 const run = promisify(execFile);
 
-test("gallery builds responsive previews and keeps uploaded originals", async (t) => {
+test("gallery builds responsive previews", async (t) => {
   const project = fileURLToPath(new URL("../", import.meta.url));
   const root = await mkdtemp(join(tmpdir(), "cinappses-gallery-"));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -30,7 +30,7 @@ test("gallery builds responsive previews and keeps uploaded originals", async (t
   ]) {
     const original = await sharp({ create: { width, height, channels: 4, background: "#f1a164" } })
       .toFormat(format).toBuffer();
-    originals.set(name, { original, width, height });
+    originals.set(name, { width, height });
     await writeFile(join(art, `img/${name}.${format}`), original);
     await writeFile(join(art, `${name}.md`), `---\ntitle: ${name}\nimage: img/${name}.${format}\ndate: 2026-10-18\n---\n`);
   }
@@ -40,12 +40,11 @@ test("gallery builds responsive previews and keeps uploaded originals", async (t
   });
 
   const html = await readFile(join(root, "dist/gallery/index.html"), "utf8");
-  const buttons = [...html.matchAll(/<button\b[^>]*data-original="[^"]+"[^>]*>/g)];
+  const buttons = [...html.matchAll(/<button\b[^>]*data-full="[^"]+"[^>]*>/g)];
   assert.equal(buttons.length, originals.size);
   for (const [button] of buttons) {
     const attrs = Object.fromEntries([...button.matchAll(/([\w-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
-    const { original, width, height } = originals.get(attrs["data-cap"]);
-    assert.deepEqual(await readFile(join(root, "dist", attrs["data-original"])), original);
+    const { width, height } = originals.get(attrs["data-cap"]);
     const candidates = attrs["data-srcset"].split(", ");
     assert.ok(candidates.length > 0);
     for (const candidate of candidates) {
@@ -72,7 +71,7 @@ test("gallery builds responsive previews and keeps uploaded originals", async (t
       assert.equal(metadata.width, metadata.height);
     }
   }
-  assert.match(html, /<a download>/);
+  assert.doesNotMatch(html, /download/);
   assert.equal(await readFile(join(root, "dist/_headers"), "utf8"),
     "/_astro/*\n  Cache-Control: public, max-age=31536000, immutable\n");
 });

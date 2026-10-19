@@ -24,7 +24,7 @@ const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galle
     const widths = [...new Set([180, 360, 540].map((width) => Math.min(width, a.data.image.width, a.data.image.height)))];
     const eager = art.indexOf(a) < 4;
     return (
-    <button data-tags={a.data.tags.join(" ")} data-full={image.src} data-srcset={image.srcset} data-sizes={image.sizes} data-preview={image.preview} data-width={image.width} data-height={image.height} data-original={image.original} data-cap={a.data.caption ?? a.data.title} data-alt={a.data.alt ?? ""}>
+    <button data-tags={a.data.tags.join(" ")} data-full={image.src} data-srcset={image.srcset} data-sizes={image.sizes} data-preview={image.preview} data-width={image.width} data-height={image.height} data-cap={a.data.caption ?? a.data.title} data-alt={a.data.alt ?? ""}>
     <Image src={a.data.image} alt={a.data.alt ?? a.data.title} width={size} height={size} fit="cover" widths={widths} sizes={eager ? "(max-width: 900px) 240px, 180px" : "auto, (max-width: 900px) 240px, 180px"} loading={eager ? "eager" : "lazy"} />
     </button>
     );
@@ -38,7 +38,6 @@ const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galle
 <figcaption>
 <p></p>
 <details><summary>alt text</summary><p></p></details>
-<a download>download original</a>
 </figcaption>
 </figure>
 </dialog>
@@ -48,7 +47,6 @@ const box = document.querySelector("dialog")!;
 const pic = box.querySelector<HTMLImageElement>(".full")!;
 const preview = box.querySelector<HTMLImageElement>(".preview")!;
 const artwork = box.querySelector<HTMLElement>(".artwork")!;
-const download = box.querySelector("a")!;
 const [cap, alt] = box.querySelectorAll("p");
 const thumbs = document.querySelectorAll<HTMLButtonElement>(".grid button");
 
@@ -94,7 +92,6 @@ thumbs.forEach((b) => {
     artwork.style.aspectRatio = `${pic.width} / ${pic.height}`;
     preview.src = b.dataset.preview!;
     pic.alt = b.dataset.alt!;
-    download.href = b.dataset.original!;
     cap.textContent = b.dataset.cap!;
     alt.textContent = b.dataset.alt!;
     alt.parentElement!.hidden = !b.dataset.alt;
