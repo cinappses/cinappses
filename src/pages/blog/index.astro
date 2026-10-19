@@ -7,6 +7,6 @@ const posts = (await getCollection("posts")).sort((a, b) => +b.data.date - +a.da
 <Base title="blog">
 <h2>blog</h2>
 <ul class="posts">
-{posts.map((p) => <li><a href={`/blog/${p.id}/`}>{p.data.title}</a> <small>{p.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</small></li>)}
+{posts.map((p) => <li><a href={`/blog/${p.id}`}>{p.data.title}</a> <small>{p.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</small></li>)}
 </ul>
 </Base>

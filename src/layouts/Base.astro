@@ -1,5 +1,6 @@
 ---
 import { getCollection, render } from "astro:content";
+import { ClientRouter } from "astro:transitions";
 import "../styles/site.css";
 
 const { title } = Astro.props;
@@ -11,15 +12,17 @@ const { Content: Status } = await render(latest);
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preload" as="image" href="/logo.webp" type="image/webp">
+<ClientRouter />
 <title>{title ? `${title} | cinappses` : "cinappses"}</title>
 </head>
 <body>
 <a class="skip" href="#content">skip to content</a>
-<header><h1><a href="/"><picture><source srcset="/logo.webp" type="image/webp"><img src="/logo.jpg" alt="cinappses" width="1600" height="781"></picture></a></h1></header>
+<header transition:persist><h1><a href="/"><picture><source srcset="/logo.webp" type="image/webp"><img src="/logo.jpg" alt="cinappses" width="1600" height="781"></picture></a></h1></header>
 <div class="site">
-<aside class="doll">
+<aside class="doll" transition:persist>
 <div class="status">
-<a href="/status/">{latest.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</a>
+<a href="/status">{latest.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</a>
 <Status />
 </div>
 <img src="/doll.webp" alt="" width="263" height="373" />
@@ -29,18 +32,18 @@ document.querySelector(".doll > img")?.addEventListener("contextmenu", (e) => {
 }, { once: true });
 </script>
 </aside>
-<main id="content" tabindex="0"><slot /></main>
-<nav>
+<main id="content" tabindex="0" transition:animate="none"><slot /></main>
+<nav transition:persist>
 <ul>
 <li><a href="/">Home</a></li>
-<li><a href="/about/">About</a></li>
-<li><a href="/guestbook/">Guestbook</a></li>
+<li><a href="/about">About</a></li>
+<li><a href="/guestbook">Guestbook</a></li>
 </ul>
 <ul>
-<li><a href="/gallery/">Gallery</a></li>
-<li><a href="/scans/">Scans</a></li>
-<li><a href="/blog/">Blog</a></li>
-<li><a href="/comic/">Comic</a></li>
+<li><a href="/gallery">Gallery</a></li>
+<li><a href="/scans">Scans</a></li>
+<li><a href="/blog">Blog</a></li>
+<li><a href="/comic">Comic</a></li>
 </ul>
 <p>inquiries at <a href="mailto:cinappses@gmail.com">cinappses@gmail.com</a></p>
 <div class="socials">

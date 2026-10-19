@@ -36,171 +36,175 @@ const CALM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 type Ball = { el: HTMLElement; x: number; y: number; vx: number; vy: number; face: number; squish: number };
 
-const pen = document.querySelector<HTMLElement>(".pen")!;
-const tag = pen.querySelector<HTMLElement>(".pen-name")!;
-const recent = document.querySelector<HTMLElement>(".recent")!;
-const cols = Math.floor(pen.clientWidth / (SIZE + 12));
-pen.style.minHeight = `${Math.ceil(pen.querySelectorAll("button").length / cols) * (SIZE + 12) + 80}px`;
-const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("button")].map((el, i) => ({
-  el,
-  x: R + 6 + (i % cols) * (SIZE + 12) + Math.random() * 8,
-  y: R + 6 + Math.floor(i / cols) * (SIZE + 12) + Math.random() * 8,
-  vx: 0,
-  vy: 0,
-  face: Math.random() < 0.5 ? -1 : 1,
-  squish: 0,
-}));
-let held: Ball | null = null;
-let hover: Ball | null = null;
-let dragging = false;
-let pointer = { x: 0, y: 0, t: 0 };
-let moves: { x: number; y: number; t: number }[] = [];
-let press = { x: 0, y: 0 };
-let offset = { x: 0, y: 0 };
-let running = false;
+document.addEventListener("astro:page-load", () => {
+  const found = document.querySelector<HTMLElement>(".pen");
+  if (!found) return;
+  const pen = found;
+  const tag = pen.querySelector<HTMLElement>(".pen-name")!;
+  const recent = document.querySelector<HTMLElement>(".recent")!;
+  const cols = Math.floor(pen.clientWidth / (SIZE + 12));
+  pen.style.minHeight = `${Math.ceil(pen.querySelectorAll("button").length / cols) * (SIZE + 12) + 80}px`;
+  const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("button")].map((el, i) => ({
+    el,
+    x: R + 6 + (i % cols) * (SIZE + 12) + Math.random() * 8,
+    y: R + 6 + Math.floor(i / cols) * (SIZE + 12) + Math.random() * 8,
+    vx: 0,
+    vy: 0,
+    face: Math.random() < 0.5 ? -1 : 1,
+    squish: 0,
+  }));
+  let held: Ball | null = null;
+  let hover: Ball | null = null;
+  let dragging = false;
+  let pointer = { x: 0, y: 0, t: 0 };
+  let moves: { x: number; y: number; t: number }[] = [];
+  let press = { x: 0, y: 0 };
+  let offset = { x: 0, y: 0 };
+  let running = false;
 
-const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
+  const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
-function squish(b: Ball) {
-  b.squish = Math.max(b.squish, Math.min(Math.hypot(b.vx, b.vy) / 40, 0.35));
-}
+  function squish(b: Ball) {
+    b.squish = Math.max(b.squish, Math.min(Math.hypot(b.vx, b.vy) / 40, 0.35));
+  }
 
-function walls(b: Ball) {
-  const w = pen.clientWidth - R;
-  const h = pen.clientHeight - R;
-  if (b.x < R || b.x > w) { b.vx *= -WALL_BOUNCE; b.x = clamp(b.x, R, w); squish(b); }
-  if (b.y < R || b.y > h) { b.vy *= -WALL_BOUNCE; b.y = clamp(b.y, R, h); squish(b); }
-}
+  function walls(b: Ball) {
+    const w = pen.clientWidth - R;
+    const h = pen.clientHeight - R;
+    if (b.x < R || b.x > w) { b.vx *= -WALL_BOUNCE; b.x = clamp(b.x, R, w); squish(b); }
+    if (b.y < R || b.y > h) { b.vy *= -WALL_BOUNCE; b.y = clamp(b.y, R, h); squish(b); }
+  }
 
-function collide(a: Ball, b: Ball) {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const d = Math.hypot(dx, dy) || 1;
-  if (d >= SIZE) return;
-  const nx = dx / d;
-  const ny = dy / d;
-  const [ma, mb] = a === held ? [0, 1] : b === held ? [1, 0] : [0.5, 0.5];
-  a.x -= nx * (SIZE - d) * ma; a.y -= ny * (SIZE - d) * ma;
-  b.x += nx * (SIZE - d) * mb; b.y += ny * (SIZE - d) * mb;
-  const p = ((a.vx - b.vx) * nx + (a.vy - b.vy) * ny) * (1 + BOUNCE);
-  if (p <= 0) return;
-  a.vx -= p * nx * ma; a.vy -= p * ny * ma;
-  b.vx += p * nx * mb; b.vy += p * ny * mb;
-}
+  function collide(a: Ball, b: Ball) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const d = Math.hypot(dx, dy) || 1;
+    if (d >= SIZE) return;
+    const nx = dx / d;
+    const ny = dy / d;
+    const [ma, mb] = a === held ? [0, 1] : b === held ? [1, 0] : [0.5, 0.5];
+    a.x -= nx * (SIZE - d) * ma; a.y -= ny * (SIZE - d) * ma;
+    b.x += nx * (SIZE - d) * mb; b.y += ny * (SIZE - d) * mb;
+    const p = ((a.vx - b.vx) * nx + (a.vy - b.vy) * ny) * (1 + BOUNCE);
+    if (p <= 0) return;
+    a.vx -= p * nx * ma; a.vy -= p * ny * ma;
+    b.vx += p * nx * mb; b.vy += p * ny * mb;
+  }
 
-function follow(b: Ball) {
-  if (!dragging) return;
-  b.vx = pointer.x - offset.x - b.x;
-  b.vy = pointer.y - offset.y - b.y;
-  b.x += b.vx;
-  b.y += b.vy;
-}
+  function follow(b: Ball) {
+    if (!dragging) return;
+    b.vx = pointer.x - offset.x - b.x;
+    b.vy = pointer.y - offset.y - b.y;
+    b.x += b.vx;
+    b.y += b.vy;
+  }
 
-function move(b: Ball) {
-  if (b === held) follow(b);
-  else { b.x += b.vx; b.y += b.vy; b.vx *= FRICTION; b.vy *= FRICTION; }
-  if (Math.abs(b.vx) > 1) b.face = Math.sign(b.vx);
-  b.squish *= 0.8;
-}
+  function move(b: Ball) {
+    if (b === held) follow(b);
+    else { b.x += b.vx; b.y += b.vy; b.vx *= FRICTION; b.vy *= FRICTION; }
+    if (Math.abs(b.vx) > 1) b.face = Math.sign(b.vx);
+    b.squish *= 0.8;
+  }
 
-function draw(b: Ball) {
-  b.el.style.transform = `translate(${b.x - R}px, ${b.y - R}px) scaleX(${b.face})`;
-  if (!CALM) b.el.querySelector("img")!.style.transform = shape(b);
-}
+  function draw(b: Ball) {
+    b.el.style.transform = `translate(${b.x - R}px, ${b.y - R}px) scaleX(${b.face})`;
+    if (!CALM) b.el.querySelector("img")!.style.transform = shape(b);
+  }
 
-function shape(b: Ball) {
-  const s = Math.min(Math.hypot(b.vx, b.vy) / 80, 0.2) - b.squish;
-  const a = Math.atan2(b.vy, b.vx * b.face);
-  return `rotate(${a}rad) scale(${1 + s}, ${1 - s}) rotate(${-a}rad)`;
-}
+  function shape(b: Ball) {
+    const s = Math.min(Math.hypot(b.vx, b.vy) / 80, 0.2) - b.squish;
+    const a = Math.atan2(b.vy, b.vx * b.face);
+    return `rotate(${a}rad) scale(${1 + s}, ${1 - s}) rotate(${-a}rad)`;
+  }
 
-function label() {
-  tag.hidden = !hover;
-  if (!hover) return;
-  tag.textContent = hover.el.dataset.name!;
-  const half = tag.offsetWidth / 2;
-  const below = hover.y - R - tag.offsetHeight < 4;
-  tag.style.left = `${clamp(hover.x, half + 4, pen.clientWidth - half - 4)}px`;
-  tag.style.top = below ? `${hover.y + R + tag.offsetHeight + 4}px` : `${hover.y - R - 4}px`;
-}
+  function label() {
+    tag.hidden = !hover;
+    if (!hover) return;
+    tag.textContent = hover.el.dataset.name!;
+    const half = tag.offsetWidth / 2;
+    const below = hover.y - R - tag.offsetHeight < 4;
+    tag.style.left = `${clamp(hover.x, half + 4, pen.clientWidth - half - 4)}px`;
+    tag.style.top = below ? `${hover.y + R + tag.offsetHeight + 4}px` : `${hover.y - R - 4}px`;
+  }
 
-function step() {
-  balls.forEach(move);
-  balls.forEach((a, i) => balls.slice(i + 1).forEach((b) => collide(a, b)));
-  balls.forEach(walls);
-  balls.forEach(draw);
-  label();
-  const energy = balls.reduce((n, b) => n + Math.abs(b.vx) + Math.abs(b.vy), 0);
-  running = !!held || energy > 0.1;
-  if (running) requestAnimationFrame(step);
-}
-
-function wake() {
-  if (!running) { running = true; requestAnimationFrame(step); }
-}
-
-function sample(e: PointerEvent) {
-  const r = pen.getBoundingClientRect();
-  return { x: e.clientX - r.left, y: e.clientY - r.top, t: performance.now() };
-}
-
-function grab(b: Ball, e: PointerEvent) {
-  pick(b);
-  held = b;
-  dragging = false;
-  pointer = sample(e);
-  press = { x: pointer.x, y: pointer.y };
-  offset = { x: pointer.x - b.x, y: pointer.y - b.y };
-  moves = [];
-  b.vx = b.vy = 0;
-  b.el.setPointerCapture(e.pointerId);
-  wake();
-}
-
-function drag(e: PointerEvent) {
-  const s = sample(e);
-  const dt = Math.max(s.t - pointer.t, 1) / FRAME;
-  const v = { x: (s.x - pointer.x) / dt, y: (s.y - pointer.y) / dt, t: s.t };
-  if (Math.hypot(v.x, v.y) > 0.5) moves = [...moves.filter((m) => s.t - m.t < WINDOW), v];
-  pointer = s;
-  if (!dragging) dragging = Math.hypot(s.x - press.x, s.y - press.y) > DRAG_START;
-}
-
-function pick(b: Ball) {
-  const link = recent.querySelector("a")!;
-  const href = b.el.dataset.link ?? "";
-  recent.querySelector("img")!.src = b.el.querySelector("img")!.src;
-  recent.querySelector("b")!.textContent = b.el.dataset.name!;
-  link.href = href;
-  link.parentElement!.hidden = !href;
-  link.textContent = href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
-  recent.hidden = false;
-}
-
-function release(b: Ball) {
-  const last = moves[moves.length - 1];
-  const live = dragging && !!last && performance.now() - last.t < STALE;
-  const peak = moves.reduce((a, m) => (Math.hypot(m.x, m.y) > Math.hypot(a.x, a.y) ? m : a), { x: 0, y: 0, t: 0 });
-  b.vx = live ? clamp(peak.x * THROW, -MAX_SPEED, MAX_SPEED) : 0;
-  b.vy = live ? clamp(peak.y * THROW, -MAX_SPEED, MAX_SPEED) : 0;
-  held = null;
-  wake();
-}
-
-balls.forEach((b) => {
-  b.el.onpointerdown = (e) => grab(b, e);
-  b.el.onpointermove = (e) => { if (held === b) drag(e); };
-  b.el.onpointerup = () => { if (held === b) release(b); };
-  b.el.onpointerenter = () => { hover = b; label(); };
-  b.el.onpointerleave = (e) => {
-    if (e.pointerType === "touch" || hover !== b || held === b) return;
-    hover = null;
+  function step() {
+    balls.forEach(move);
+    balls.forEach((a, i) => balls.slice(i + 1).forEach((b) => collide(a, b)));
+    balls.forEach(walls);
+    balls.forEach(draw);
     label();
-  };
-  b.el.onfocus = () => { hover = b; label(); };
-  b.el.onblur = () => { if (hover === b) { hover = null; label(); } };
-  b.el.onclick = () => pick(b);
-});
+    const energy = balls.reduce((n, b) => n + Math.abs(b.vx) + Math.abs(b.vy), 0);
+    running = !!held || energy > 0.1;
+    if (running) requestAnimationFrame(step);
+  }
 
-balls.forEach(draw);
+  function wake() {
+    if (!running) { running = true; requestAnimationFrame(step); }
+  }
+
+  function sample(e: PointerEvent) {
+    const r = pen.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top, t: performance.now() };
+  }
+
+  function grab(b: Ball, e: PointerEvent) {
+    pick(b);
+    held = b;
+    dragging = false;
+    pointer = sample(e);
+    press = { x: pointer.x, y: pointer.y };
+    offset = { x: pointer.x - b.x, y: pointer.y - b.y };
+    moves = [];
+    b.vx = b.vy = 0;
+    b.el.setPointerCapture(e.pointerId);
+    wake();
+  }
+
+  function drag(e: PointerEvent) {
+    const s = sample(e);
+    const dt = Math.max(s.t - pointer.t, 1) / FRAME;
+    const v = { x: (s.x - pointer.x) / dt, y: (s.y - pointer.y) / dt, t: s.t };
+    if (Math.hypot(v.x, v.y) > 0.5) moves = [...moves.filter((m) => s.t - m.t < WINDOW), v];
+    pointer = s;
+    if (!dragging) dragging = Math.hypot(s.x - press.x, s.y - press.y) > DRAG_START;
+  }
+
+  function pick(b: Ball) {
+    const link = recent.querySelector("a")!;
+    const href = b.el.dataset.link ?? "";
+    recent.querySelector("img")!.src = b.el.querySelector("img")!.src;
+    recent.querySelector("b")!.textContent = b.el.dataset.name!;
+    link.href = href;
+    link.parentElement!.hidden = !href;
+    link.textContent = href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+    recent.hidden = false;
+  }
+
+  function release(b: Ball) {
+    const last = moves[moves.length - 1];
+    const live = dragging && !!last && performance.now() - last.t < STALE;
+    const peak = moves.reduce((a, m) => (Math.hypot(m.x, m.y) > Math.hypot(a.x, a.y) ? m : a), { x: 0, y: 0, t: 0 });
+    b.vx = live ? clamp(peak.x * THROW, -MAX_SPEED, MAX_SPEED) : 0;
+    b.vy = live ? clamp(peak.y * THROW, -MAX_SPEED, MAX_SPEED) : 0;
+    held = null;
+    wake();
+  }
+
+  balls.forEach((b) => {
+    b.el.onpointerdown = (e) => grab(b, e);
+    b.el.onpointermove = (e) => { if (held === b) drag(e); };
+    b.el.onpointerup = () => { if (held === b) release(b); };
+    b.el.onpointerenter = () => { hover = b; label(); };
+    b.el.onpointerleave = (e) => {
+      if (e.pointerType === "touch" || hover !== b || held === b) return;
+      hover = null;
+      label();
+    };
+    b.el.onfocus = () => { hover = b; label(); };
+    b.el.onblur = () => { if (hover === b) { hover = null; label(); } };
+    b.el.onclick = () => pick(b);
+  });
+
+  balls.forEach(draw);
+});
 </script>

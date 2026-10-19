@@ -8,6 +8,7 @@
   --spring: cubic-bezier(.3, 1.5, .5, 1);
 }
 
+html { scrollbar-gutter: stable; }
 * { box-sizing: border-box; }
 
 body {
@@ -109,7 +110,7 @@ footer { text-align: center; padding: 16px; font-size: .9em; }
 .year { text-align: center; font-size: 2em; margin: 28px 0 14px; border-bottom: 2px dashed var(--ink); }
 section:first-of-type .year { margin-top: 0; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
-.grid button { padding: 0; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; aspect-ratio: 1; background: var(--bg); cursor: pointer; animation: pop .4s var(--spring) backwards; transition: rotate .35s var(--spring), scale .35s var(--spring), box-shadow .35s var(--spring); }
+.grid button { padding: 0; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; aspect-ratio: 1; background: var(--bg); cursor: pointer; transition: rotate .35s var(--spring), scale .35s var(--spring), box-shadow .35s var(--spring); }
 .grid button:is(:hover, :focus-visible) { rotate: -1.5deg; scale: 1.04; box-shadow: 3px 3px 0 var(--ink); }
 .grid button:nth-child(even):is(:hover, :focus-visible) { rotate: 1.5deg; }
 .grid button:active { scale: 1.07 .95; transition-duration: .08s; }
