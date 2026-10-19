@@ -32,11 +32,12 @@ const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galle
   </div>
   </section>
 ))}
-<dialog>
-<figure>
+<dialog aria-labelledby="caption">
+<figure aria-labelledby="caption">
 <div class="artwork"></div>
 <figcaption>
-<p></p>
+<form method="dialog"><button class="close">close</button></form>
+<p id="caption"></p>
 <details><summary>alt text</summary><p></p></details>
 </figcaption>
 </figure>
@@ -45,7 +46,7 @@ const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galle
 <script>
 const box = document.querySelector("dialog")!;
 const artwork = box.querySelector<HTMLElement>(".artwork")!;
-const [cap, alt] = box.querySelectorAll("p");
+const [cap, alt] = box.querySelectorAll("figcaption p");
 const thumbs = document.querySelectorAll<HTMLButtonElement>(".grid button");
 const images = new Map<HTMLButtonElement, HTMLImageElement>();
 
@@ -53,7 +54,7 @@ function full(button: HTMLButtonElement) {
   const cached = images.get(button);
   if (cached) return cached;
   const image = new window.Image(Number(button.dataset.width), Number(button.dataset.height));
-  image.alt = button.dataset.alt!;
+  image.alt = button.querySelector("img")!.alt;
   image.sizes = button.dataset.sizes!;
   image.srcset = button.dataset.srcset!;
   image.src = button.dataset.full!;
@@ -84,6 +85,7 @@ thumbs.forEach((b) => {
     alt.textContent = b.dataset.alt!;
     alt.parentElement!.hidden = !b.dataset.alt;
     box.showModal();
+    box.scrollTop = 0;
   };
 });
 

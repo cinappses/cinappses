@@ -110,11 +110,11 @@ section:first-of-type .year { margin-top: 0; }
 .grid button:nth-child(even):is(:hover, :focus-visible) { rotate: 1.5deg; }
 .grid button:active { scale: 1.07 .95; transition-duration: .08s; }
 .grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.tags button { font: inherit; background: var(--paper); border: 2px solid var(--ink); border-radius: 20px; padding: 0 12px; cursor: pointer; margin: 0 4px 16px 0; }
-.tags button { transition: rotate .3s var(--spring), scale .3s var(--spring); }
-.tags button:is(:hover, :focus-visible) { rotate: -2deg; scale: 1.05; }
+.tags button, dialog .close { font: inherit; background: var(--paper); border: 2px solid var(--ink); border-radius: 20px; padding: 0 12px; cursor: pointer; margin: 0 4px 16px 0; }
+.tags button, dialog .close { transition: rotate .3s var(--spring), scale .3s var(--spring); }
+.tags button:is(:hover, :focus-visible), dialog .close:is(:hover, :focus-visible) { rotate: -2deg; scale: 1.05; }
 .tags button:nth-child(even):is(:hover, :focus-visible) { rotate: 2deg; }
-.tags button:active { scale: 1.1 .85; transition-duration: .08s; }
+.tags button:active, dialog .close:active { scale: 1.1 .85; transition-duration: .08s; }
 .tags button[aria-pressed="true"] { background: var(--orange); animation: pop .4s var(--spring); }
 
 dialog { border: 2px solid var(--ink); padding: 16px; max-width: min(1000px, 92vw); background: var(--paper); }
@@ -122,6 +122,9 @@ dialog[open] { animation: drop .45s var(--spring); }
 dialog::backdrop { background: #1d1410cc; }
 dialog[open]::backdrop { animation: fade .2s; }
 dialog figure { margin: 0; }
+dialog form { float: right; margin-left: 12px; }
+dialog .close { margin: 0; }
+dialog figcaption > p { margin: 4px 0; }
 dialog .artwork { position: relative; overflow: hidden; max-width: 100%; margin: 0 auto; }
 dialog .artwork::before { content: ""; position: absolute; inset: 0; background: var(--placeholder) center / 100% 100%; filter: blur(16px); transform: scale(1.1); }
 dialog .artwork img { position: relative; width: 100%; height: 100%; object-fit: contain; display: block; }
