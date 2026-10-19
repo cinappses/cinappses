@@ -32,8 +32,9 @@ const FRAME = 1000 / 60;
 const THROW = 1.4;
 const STALE = 300;
 const WINDOW = 120;
+const CALM = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-type Ball = { el: HTMLElement; x: number; y: number; vx: number; vy: number; face: number };
+type Ball = { el: HTMLElement; x: number; y: number; vx: number; vy: number; face: number; squish: number };
 
 const pen = document.querySelector<HTMLElement>(".pen")!;
 const tag = pen.querySelector<HTMLElement>(".pen-name")!;
@@ -47,6 +48,7 @@ const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("button")].map((el, 
   vx: 0,
   vy: 0,
   face: Math.random() < 0.5 ? -1 : 1,
+  squish: 0,
 }));
 let held: Ball | null = null;
 let hover: Ball | null = null;
@@ -59,11 +61,15 @@ let running = false;
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
+function squish(b: Ball) {
+  b.squish = Math.max(b.squish, Math.min(Math.hypot(b.vx, b.vy) / 40, 0.35));
+}
+
 function walls(b: Ball) {
   const w = pen.clientWidth - R;
   const h = pen.clientHeight - R;
-  if (b.x < R || b.x > w) { b.vx *= -WALL_BOUNCE; b.x = clamp(b.x, R, w); }
-  if (b.y < R || b.y > h) { b.vy *= -WALL_BOUNCE; b.y = clamp(b.y, R, h); }
+  if (b.x < R || b.x > w) { b.vx *= -WALL_BOUNCE; b.x = clamp(b.x, R, w); squish(b); }
+  if (b.y < R || b.y > h) { b.vy *= -WALL_BOUNCE; b.y = clamp(b.y, R, h); squish(b); }
 }
 
 function collide(a: Ball, b: Ball) {
@@ -94,10 +100,18 @@ function move(b: Ball) {
   if (b === held) follow(b);
   else { b.x += b.vx; b.y += b.vy; b.vx *= FRICTION; b.vy *= FRICTION; }
   if (Math.abs(b.vx) > 1) b.face = Math.sign(b.vx);
+  b.squish *= 0.8;
 }
 
 function draw(b: Ball) {
   b.el.style.transform = `translate(${b.x - R}px, ${b.y - R}px) scaleX(${b.face})`;
+  if (!CALM) b.el.querySelector("img")!.style.transform = shape(b);
+}
+
+function shape(b: Ball) {
+  const s = Math.min(Math.hypot(b.vx, b.vy) / 80, 0.2) - b.squish;
+  const a = Math.atan2(b.vy, b.vx * b.face);
+  return `rotate(${a}rad) scale(${1 + s}, ${1 - s}) rotate(${-a}rad)`;
 }
 
 function label() {
