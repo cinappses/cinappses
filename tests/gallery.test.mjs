@@ -10,7 +10,7 @@ import sharp from "sharp";
 
 const run = promisify(execFile);
 
-test("gallery builds responsive previews", async (t) => {
+test("gallery builds responsive images with inline placeholders", async (t) => {
   const project = fileURLToPath(new URL("../", import.meta.url));
   const root = await mkdtemp(join(tmpdir(), "cinappses-gallery-"));
   t.after(() => rm(root, { recursive: true, force: true }));
@@ -45,6 +45,11 @@ test("gallery builds responsive previews", async (t) => {
   for (const [button] of buttons) {
     const attrs = Object.fromEntries([...button.matchAll(/([\w-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]));
     const { width, height } = originals.get(attrs["data-cap"]);
+    const [, placeholder] = attrs["data-placeholder"].match(/^data:image\/webp;base64,(.+)$/);
+    const tiny = await sharp(Buffer.from(placeholder, "base64")).metadata();
+    assert.equal(tiny.format, "webp");
+    assert.equal(Math.max(tiny.width, tiny.height), Math.min(24, Math.max(width, height)));
+    assert.ok(Math.abs(tiny.width / tiny.height - width / height) < 0.1);
     const candidates = attrs["data-srcset"].split(", ");
     assert.ok(candidates.length > 0);
     for (const candidate of candidates) {

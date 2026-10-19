@@ -101,10 +101,10 @@ section:first-of-type .year { margin-top: 0; }
 dialog { border: 2px solid var(--ink); padding: 16px; max-width: min(1000px, 92vw); background: var(--paper); }
 dialog::backdrop { background: #1d1410cc; }
 dialog figure { margin: 0; }
-dialog .artwork { position: relative; max-width: 100%; margin: 0 auto; }
-dialog .artwork img { width: 100%; height: 100%; object-fit: contain; display: block; }
-dialog .full { position: absolute; inset: 0; }
-dialog .full[hidden] { display: none; }
+dialog .artwork { position: relative; overflow: hidden; max-width: 100%; margin: 0 auto; }
+dialog .artwork::before { content: ""; position: absolute; inset: 0; background: var(--placeholder) center / 100% 100%; filter: blur(16px); transform: scale(1.1); }
+dialog .artwork img { position: relative; width: 100%; height: 100%; object-fit: contain; display: block; }
+dialog .artwork img:not([data-ready]) { visibility: hidden; }
 dialog figcaption { border-top: 2px solid var(--ink); margin-top: 12px; padding-top: 8px; }
 dialog summary { cursor: pointer; }
 

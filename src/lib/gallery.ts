@@ -1,5 +1,6 @@
 import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
+import sharp from "sharp";
 
 export async function galleryImage(image: ImageMetadata) {
   const scale = Math.min(1, 2400 / Math.max(image.width, image.height));
@@ -11,7 +12,8 @@ export async function galleryImage(image: ImageMetadata) {
   const variants = await Promise.all(widths.map((width) =>
     getImage({ src: image, width, format: "webp", quality: 85 }),
   ));
-  const preview = await getImage({ src: image, width: Math.min(320, image.width), format: "webp" });
+  const { fsPath } = image as ImageMetadata & { fsPath: string };
+  const placeholder = await sharp(fsPath).resize(24, 24, { fit: "inside" }).webp({ quality: 50 }).toBuffer();
 
   return {
     width,
@@ -19,6 +21,6 @@ export async function galleryImage(image: ImageMetadata) {
     src: variants[0]!.src,
     srcset: variants.map((variant, i) => `${variant.src} ${widths[i]}w`).join(", "),
     sizes: `min(${width}px, 960px, calc(92vw - 36px), ${72 * image.width / image.height}vh)`,
-    preview: preview.src,
+    placeholder: `data:image/webp;base64,${placeholder.toString("base64")}`,
   };
 }
