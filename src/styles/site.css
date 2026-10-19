@@ -18,12 +18,13 @@ body {
 }
 
 a { color: inherit; text-decoration-color: var(--orange); text-decoration-thickness: 2px; transition: color .2s; }
-a:hover { color: var(--rust); }
+a:is(:hover, :focus-visible) { color: var(--rust); }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 img { max-width: 100%; height: auto; }
 
 header { text-align: center; padding: 12px 0 4px; }
 header a { display: inline-block; width: min(55vw, 308px); transition: rotate .4s var(--spring), scale .4s var(--spring); }
-header a:hover { rotate: -1deg; scale: 1.02; }
+header a:is(:hover, :focus-visible) { rotate: -1deg; scale: 1.02; }
 header a:active { scale: 1.04 .96; transition-duration: .08s; }
 header picture { display: block; }
 header img { display: block; width: 100%; }
@@ -50,7 +51,7 @@ header img { display: block; width: 100%; }
   transform: rotate(-1.5deg);
   transition: rotate .4s var(--spring), scale .4s var(--spring);
 }
-.status:hover { rotate: 1.5deg; scale: 1.015; }
+.status:is(:hover, :focus-within) { rotate: 1.5deg; scale: 1.015; }
 .status::after {
   content: "";
   position: absolute;
@@ -84,19 +85,19 @@ nav ul {
   box-shadow: 4px 4px 0 var(--ink);
   transition: translate .3s var(--spring), box-shadow .3s var(--spring);
 }
-nav ul:hover { translate: -1px -1px; box-shadow: 5px 5px 0 var(--ink); }
+nav ul:is(:hover, :focus-within) { translate: -1px -1px; box-shadow: 5px 5px 0 var(--ink); }
 nav ul:first-child { transform: rotate(1deg); }
 nav ul + ul { transform: rotate(-.8deg); }
 nav li { font-size: 1.35em; text-transform: uppercase; letter-spacing: 1px; }
 nav li a { text-decoration: none; display: inline-block; transform-origin: 0 100%; transition: color .2s, translate .3s var(--spring), rotate .3s var(--spring), scale .3s var(--spring); }
-nav li a:hover { color: var(--rust); translate: 4px; rotate: -2deg; }
+nav li a:is(:hover, :focus-visible) { color: var(--rust); translate: 4px; rotate: -2deg; }
 nav li a:active { scale: 1.06 .92; transition-duration: .08s; }
 nav p { font-size: .85em; margin: 8px 0; }
 .socials { display: flex; gap: 8px; }
 .socials a { flex: 1; text-align: center; border: 2px solid var(--ink); background: var(--paper); font-size: .8em; text-decoration: none; }
 .socials a { transition: background .2s, translate .3s var(--spring), rotate .3s var(--spring), scale .3s var(--spring); }
-.socials a:hover { background: var(--orange); color: var(--ink); translate: 0 -2px; rotate: -3deg; }
-.socials a:nth-child(even):hover { rotate: 3deg; }
+.socials a:is(:hover, :focus-visible) { background: var(--orange); color: var(--ink); translate: 0 -2px; rotate: -3deg; }
+.socials a:nth-child(even):is(:hover, :focus-visible) { rotate: 3deg; }
 .socials a:active { scale: 1.1 .85; transition-duration: .08s; }
 
 footer { text-align: center; padding: 16px; font-size: .9em; }
@@ -105,14 +106,14 @@ footer { text-align: center; padding: 16px; font-size: .9em; }
 section:first-of-type .year { margin-top: 0; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 .grid button { padding: 0; border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; aspect-ratio: 1; background: var(--bg); cursor: pointer; animation: pop .4s var(--spring) backwards; transition: rotate .35s var(--spring), scale .35s var(--spring), box-shadow .35s var(--spring); }
-.grid button:hover { rotate: -1.5deg; scale: 1.04; box-shadow: 3px 3px 0 var(--ink); }
-.grid button:nth-child(even):hover { rotate: 1.5deg; }
+.grid button:is(:hover, :focus-visible) { rotate: -1.5deg; scale: 1.04; box-shadow: 3px 3px 0 var(--ink); }
+.grid button:nth-child(even):is(:hover, :focus-visible) { rotate: 1.5deg; }
 .grid button:active { scale: 1.07 .95; transition-duration: .08s; }
 .grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .tags button { font: inherit; background: var(--paper); border: 2px solid var(--ink); border-radius: 20px; padding: 0 12px; cursor: pointer; margin: 0 4px 16px 0; }
 .tags button { transition: rotate .3s var(--spring), scale .3s var(--spring); }
-.tags button:hover { rotate: -2deg; scale: 1.05; }
-.tags button:nth-child(even):hover { rotate: 2deg; }
+.tags button:is(:hover, :focus-visible) { rotate: -2deg; scale: 1.05; }
+.tags button:nth-child(even):is(:hover, :focus-visible) { rotate: 2deg; }
 .tags button:active { scale: 1.1 .85; transition-duration: .08s; }
 .tags button[aria-pressed="true"] { background: var(--orange); animation: pop .4s var(--spring); }
 
@@ -131,8 +132,8 @@ dialog summary { cursor: pointer; }
 .pen { position: relative; height: 440px; border: 3px dashed var(--ink); border-radius: 16px; background: #f7e3b5; overflow: hidden; touch-action: pan-y; }
 .pen button { position: absolute; left: 0; top: 0; width: 56px; padding: 0; border: 0; background: none; cursor: grab; user-select: none; touch-action: none; -webkit-touch-callout: none; }
 .pen button:active { cursor: grabbing; }
-.pen button:hover { z-index: 1; }
-.pen button:hover img { animation: wiggle .5s ease-in-out; }
+.pen button:is(:hover, :focus-visible) { z-index: 1; }
+.pen button:is(:hover, :focus-visible) img { animation: wiggle .5s ease-in-out; }
 .pen button:active img { scale: 1.2 .8; }
 .pen-name { position: absolute; z-index: 2; padding: 0 6px; background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; font-size: .8em; white-space: nowrap; pointer-events: none; transform: translate(-50%, -100%); transform-origin: 50% 100%; animation: pop .3s var(--boing); }
 .pen img { display: block; image-rendering: pixelated; pointer-events: none; transition: scale .4s var(--boing); }
@@ -144,7 +145,7 @@ dialog summary { cursor: pointer; }
 .entry { border-bottom: 1px dashed var(--ink); padding: 8px 0; }
 .posts { padding-left: 18px; }
 .posts a { display: inline-block; transition: translate .3s var(--spring), rotate .3s var(--spring); }
-.posts a:hover { translate: 3px; rotate: -1deg; }
+.posts a:is(:hover, :focus-visible) { translate: 3px; rotate: -1deg; }
 .soon { text-align: center; padding-top: 20vh; }
 
 iframe { width: 100%; height: 70vh; border: 2px solid var(--ink); }
@@ -169,7 +170,7 @@ iframe { width: 100%; height: 70vh; border: 2px solid var(--ink); }
 .sign label { display: grid; gap: 2px; }
 .sign input, .sign textarea, .sign button { font: inherit; border: 2px solid var(--ink); background: var(--paper); padding: 4px 8px; }
 .sign button { justify-self: start; background: var(--orange); box-shadow: 3px 3px 0 var(--ink); cursor: pointer; transition: translate .3s var(--spring), rotate .3s var(--spring), box-shadow .3s var(--spring), scale .3s var(--spring); }
-.sign button:hover { translate: -1px -1px; rotate: -1.5deg; box-shadow: 4px 4px 0 var(--ink); }
+.sign button:is(:hover, :focus-visible) { translate: -1px -1px; rotate: -1.5deg; box-shadow: 4px 4px 0 var(--ink); }
 .sign button:active { translate: 3px 3px; rotate: 0deg; scale: 1.06 .92; box-shadow: 0 0 0 var(--ink); transition-duration: .08s; }
 .sign .trap { position: absolute; left: -9999px; }
 .note { border-top: 2px dashed var(--orange); padding: 8px 0; }
