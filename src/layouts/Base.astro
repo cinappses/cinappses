@@ -14,9 +14,9 @@ const { Content: Status } = await render(latest);
 <title>{title ? `${title} | cinappses` : "cinappses"}</title>
 </head>
 <body>
+<header><a href="/"><picture><source srcset="/logo.webp" type="image/webp"><img src="/logo.jpg" alt="cinappses" width="1600" height="781"></picture></a></header>
 <div class="site">
 <aside class="doll">
-<a class="wordmark" href="/"><picture><source srcset="/logo.webp" type="image/webp"><img src="/logo.jpg" alt="cinappses" width="1600" height="907"></picture></a>
 <div class="status">
 <a href="/status/">{latest.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</a>
 <Status />
