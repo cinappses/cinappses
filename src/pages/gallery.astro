@@ -24,7 +24,7 @@ const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galle
     const widths = [...new Set([180, 360, 540].map((width) => Math.min(width, a.data.image.width, a.data.image.height)))];
     const eager = art.indexOf(a) < 4;
     return (
-    <button data-tags={a.data.tags.join(" ")} data-full={image.src} data-srcset={image.srcset} data-sizes={image.sizes} data-preview={image.preview} data-width={image.width} data-height={image.height} data-cap={a.data.caption ?? a.data.title} data-alt={a.data.alt ?? ""}>
+    <button data-tags={a.data.tags.join(" ")} data-full={image.src} data-srcset={image.srcset} data-sizes={image.sizes} data-width={image.width} data-height={image.height} data-cap={a.data.caption ?? a.data.title} data-alt={a.data.alt ?? ""} data-placeholder={image.placeholder}>
     <Image src={a.data.image} alt={a.data.alt ?? a.data.title} width={size} height={size} fit="cover" widths={widths} sizes={eager ? "(max-width: 900px) 240px, 180px" : "auto, (max-width: 900px) 240px, 180px"} loading={eager ? "eager" : "lazy"} />
     </button>
     );
@@ -34,7 +34,7 @@ const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galle
 ))}
 <dialog>
 <figure>
-<div class="artwork"><img class="preview" alt=""><img class="full" alt=""></div>
+<div class="artwork"></div>
 <figcaption>
 <p></p>
 <details><summary>alt text</summary><p></p></details>
@@ -44,58 +44,45 @@ const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galle
 </Base>
 <script>
 const box = document.querySelector("dialog")!;
-const pic = box.querySelector<HTMLImageElement>(".full")!;
-const preview = box.querySelector<HTMLImageElement>(".preview")!;
 const artwork = box.querySelector<HTMLElement>(".artwork")!;
 const [cap, alt] = box.querySelectorAll("p");
 const thumbs = document.querySelectorAll<HTMLButtonElement>(".grid button");
+const images = new Map<HTMLButtonElement, HTMLImageElement>();
 
-function loadImage(image: HTMLImageElement, button: HTMLButtonElement) {
+function full(button: HTMLButtonElement) {
+  const cached = images.get(button);
+  if (cached) return cached;
+  const image = new window.Image(Number(button.dataset.width), Number(button.dataset.height));
+  image.alt = button.dataset.alt!;
   image.sizes = button.dataset.sizes!;
   image.srcset = button.dataset.srcset!;
   image.src = button.dataset.full!;
+  image.decode().then(() => (image.dataset.ready = ""), () => images.delete(button));
+  images.set(button, image);
+  return image;
 }
 
-const warmed = new Set<string>();
 function warm(button: HTMLButtonElement) {
   const connection = (navigator as Navigator & { connection?: { saveData: boolean; effectiveType: string } }).connection;
-  if (connection?.saveData || connection?.effectiveType.includes("2g")) return;
-  const src = button.dataset.full!;
-  if (warmed.has(src)) return;
-  warmed.add(src);
-  loadImage(new window.Image(), button);
+  if (!connection?.saveData && !connection?.effectiveType.includes("2g")) full(button);
 }
 
 thumbs.forEach((b) => {
   let timer: ReturnType<typeof setTimeout>;
   b.onpointerenter = (e) => {
-    if (e.pointerType === "mouse") timer = setTimeout(() => warm(b), 150);
+    if (e.pointerType === "mouse") timer = setTimeout(() => warm(b), 60);
   };
   b.onpointerleave = () => clearTimeout(timer);
+  b.onpointerdown = () => full(b);
   b.onfocus = () => warm(b);
   b.onclick = () => {
-    pic.removeAttribute("srcset");
-    pic.removeAttribute("src");
-    pic.hidden = true;
-    preview.style.visibility = "visible";
-    pic.onload = () => {
-      pic.hidden = false;
-      preview.style.visibility = "hidden";
-    };
-    pic.onerror = () => {
-      pic.hidden = true;
-      preview.style.visibility = "visible";
-    };
-    pic.width = Number(b.dataset.width);
-    pic.height = Number(b.dataset.height);
     artwork.style.width = b.dataset.sizes!;
-    artwork.style.aspectRatio = `${pic.width} / ${pic.height}`;
-    preview.src = b.dataset.preview!;
-    pic.alt = b.dataset.alt!;
+    artwork.style.aspectRatio = `${b.dataset.width} / ${b.dataset.height}`;
+    artwork.style.setProperty("--placeholder", `url(${b.dataset.placeholder})`);
+    artwork.replaceChildren(full(b));
     cap.textContent = b.dataset.cap!;
     alt.textContent = b.dataset.alt!;
     alt.parentElement!.hidden = !b.dataset.alt;
-    loadImage(pic, b);
     box.showModal();
   };
 });
