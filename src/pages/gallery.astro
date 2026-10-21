@@ -3,10 +3,12 @@ import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
 import { galleryImage } from "../lib/gallery";
+import tagList from "../data/tags.json";
 
 const art = (await getCollection("art")).sort((a, b) => +b.data.date - +a.data.date);
 const years = Map.groupBy(art, (a) => a.data.date.getUTCFullYear());
-const tags = [...new Set(art.flatMap((a) => a.data.tags))];
+const used = new Set(art.flatMap((a) => a.data.tags));
+const tags = tagList.tags.filter((t) => used.has(t));
 const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galleryImage(a.data.image)] as const)));
 ---
 <Base title="gallery">
