@@ -34,7 +34,7 @@ test("built pages keep their accessibility markup", async (t) => {
   const guestbook = await readFile(join(out, "guestbook.html"), "utf8");
   assert.match(guestbook, /name="name"[^>]*autocomplete="name"/);
   assert.match(guestbook, /name="site"[^>]*autocomplete="url"/);
-  assert.match(guestbook, /class="thanks" role="status"/);
+  assert.match(guestbook, /class="oops" role="status"/);
 
   const about = await readFile(join(out, "about.html"), "utf8");
   assert.match(about, /<div aria-live="polite"><p class="recent"/);

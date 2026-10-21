@@ -1,29 +1,173 @@
 ---
-import { getCollection } from "astro:content";
 import Base from "../layouts/Base.astro";
-
-const notes = (await getCollection("guestbook")).sort((a, b) => +b.data.date - +a.data.date);
+import { ERASER, PALETTE, SIZES } from "../lib/guestbook";
 ---
 <Base title="guestbook">
 <h2>guestbook</h2>
 <form class="sign" method="post" action="/api/sign">
-  <label>name <input name="name" maxlength="40" autocomplete="name" required></label>
-  <label>website <input name="site" type="url" maxlength="200" autocomplete="url"></label>
-  <label class="trap" aria-hidden="true">leave empty <input name="phone" tabindex="-1" autocomplete="off"></label>
-  <label>message <textarea name="message" maxlength="1000" rows="4" required></textarea></label>
-  <button>sign</button>
+  <div class="tabs" hidden>
+    <button type="button" aria-pressed="true">write</button>
+    <button type="button" aria-pressed="false">draw</button>
+  </div>
+  <div class="box">
+    <textarea name="message" maxlength="1000" aria-label="message" required></textarea>
+    <div class="pad" hidden>
+      <canvas aria-label="drawing"></canvas>
+      <div class="meter" aria-hidden="true"><span></span></div>
+      <div class="tools">
+        <span class="colors">
+          {PALETTE.slice(0, ERASER).map(([name, color], i) => <button type="button" class="color" style={`--c: ${color}`} aria-label={name} aria-pressed={i === 0 ? "true" : "false"}></button>)}
+          <button type="button" class="color eraser" aria-pressed="false">eraser</button>
+        </span>
+        <span class="sizes">
+          {SIZES.map((size, i) => <button type="button" class="size" style={`--s: ${size}px`} aria-label={`size ${i + 1}`} aria-pressed={i === 1 ? "true" : "false"}></button>)}
+        </span>
+        <span class="history">
+          <button type="button" class="undo">undo</button>
+          <button type="button" class="clear">clear</button>
+        </span>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <label>name <input name="name" maxlength="40" autocomplete="name" required></label>
+    <label>website <input name="site" type="url" maxlength="200" autocomplete="url"></label>
+    <label class="trap" aria-hidden="true">leave empty <input name="phone" tabindex="-1" autocomplete="off"></label>
+    <button>sign</button>
+  </div>
+  <p class="oops" role="status" hidden>couldn't sign, try again later</p>
 </form>
-<p class="thanks" role="status" hidden>thanks! it'll show up in a minute.</p>
-{notes.map((n) => (
-  <article class="note">
-    <p><b>{n.data.site ? <a href={n.data.site} rel="nofollow ugc">{n.data.name}</a> : n.data.name}</b> <small>{n.data.date.toLocaleDateString("en-US", { timeZone: "UTC" })}</small></p>
-    <p>{n.data.message}</p>
-  </article>
-))}
+<div class="entries"></div>
 </Base>
 <script>
+import { ERASER, HEIGHT, MAX_POINTS, MAX_SHAPES, PALETTE, WIDTH, pathPoints, strokePath, type Shape, type Stroke } from "../lib/guestbook";
+
+function choose(buttons: NodeListOf<HTMLButtonElement>, pick: (i: number) => void) {
+  buttons.forEach((button, i) => button.addEventListener("click", () => {
+    pick(i);
+    buttons.forEach((other) => other.setAttribute("aria-pressed", String(other === button)));
+  }));
+}
+
+function shake(el: HTMLElement) {
+  el.classList.add("shake");
+  el.addEventListener("animationend", () => el.classList.remove("shake"), { once: true });
+}
+
+function drawingPad(el: HTMLElement) {
+  const canvas = el.querySelector("canvas")!;
+  const ink = el.querySelector<HTMLElement>(".meter span")!;
+  const ctx = canvas.getContext("2d")!;
+  const scale = Math.max(1, devicePixelRatio);
+  canvas.width = WIDTH * scale;
+  canvas.height = HEIGHT * scale;
+  ctx.scale(scale, scale);
+  const pad = { shapes: [] as Shape[], color: 0, size: 1 };
+  let current: Stroke | null = null;
+
+  const used = () => pad.shapes.reduce((total, shape) => total + pathPoints(shape.d), 0);
+  const fill = (color: number, d: string) => {
+    ctx.fillStyle = PALETTE[color][1];
+    ctx.fill(new Path2D(d));
+  };
+  const redraw = () => {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+    pad.shapes.forEach((shape) => fill(shape.color, shape.d));
+    if (current) fill(current.color, strokePath(current));
+    ink.style.width = `${(100 * used()) / MAX_POINTS}%`;
+  };
+  const addPoint = (e: PointerEvent) => {
+    const box = canvas.getBoundingClientRect();
+    const round = (n: number, max: number) => Math.round(Math.min(max, Math.max(0, n)) * 10) / 10;
+    const x = round(((e.clientX - box.left) * WIDTH) / box.width, WIDTH);
+    const y = round(((e.clientY - box.top) * HEIGHT) / box.height, HEIGHT);
+    const pressure = e.pointerType === "pen" ? Math.round(e.pressure * 100) / 100 : 0.5;
+    const last = current!.points.at(-1);
+    if (!last || Math.hypot(x - last[0], y - last[1]) >= 2) current!.points.push([x, y, pressure]);
+  };
+  const finish = (stroke: Stroke) => {
+    const d = strokePath(stroke);
+    if (!d) return;
+    if (used() + pathPoints(d) > MAX_POINTS) return shake(el);
+    pad.shapes.push({ color: stroke.color, d });
+  };
+  canvas.onpointerdown = (e) => {
+    if (pad.shapes.length >= MAX_SHAPES || used() >= MAX_POINTS) return shake(el);
+    canvas.setPointerCapture(e.pointerId);
+    current = { color: e.button === 5 ? ERASER : pad.color, size: pad.size, points: [] };
+    addPoint(e);
+    redraw();
+  };
+  canvas.onpointermove = (e) => {
+    if (!current) return;
+    const events = e.getCoalescedEvents?.() ?? [];
+    (events.length ? events : [e]).forEach(addPoint);
+    redraw();
+  };
+  canvas.onpointerup = canvas.onpointercancel = () => {
+    if (current) finish(current);
+    current = null;
+    redraw();
+  };
+  choose(el.querySelectorAll(".color"), (i) => (pad.color = i));
+  choose(el.querySelectorAll(".size"), (i) => (pad.size = i));
+  el.querySelector<HTMLButtonElement>(".undo")!.onclick = () => {
+    pad.shapes.pop();
+    redraw();
+  };
+  const clear = () => {
+    pad.shapes = [];
+    redraw();
+  };
+  el.querySelector<HTMLButtonElement>(".clear")!.onclick = clear;
+  redraw();
+  return { clear, shapes: () => pad.shapes };
+}
+
+async function send(form: HTMLFormElement, data: FormData) {
+  const button = form.querySelector<HTMLButtonElement>(".row button")!;
+  button.disabled = true;
+  const res = await fetch(form.action, { method: "post", body: data, headers: { "x-fragment": "1" } }).catch(() => null);
+  button.disabled = false;
+  form.querySelector<HTMLElement>(".oops")!.hidden = !!res?.ok;
+  if (!res?.ok) return false;
+  const entries = document.querySelector(".entries")!;
+  entries.insertAdjacentHTML("afterbegin", await res.text());
+  entries.firstElementChild?.classList.add("fresh");
+  return true;
+}
+
+function setup(form: HTMLFormElement) {
+  const tabs = form.querySelector<HTMLElement>(".tabs")!;
+  const message = form.querySelector("textarea")!;
+  const padEl = form.querySelector<HTMLElement>(".pad")!;
+  const pad = drawingPad(padEl);
+  let drawing = false;
+  tabs.hidden = false;
+  choose(tabs.querySelectorAll("button"), (i) => {
+    drawing = i === 1;
+    message.hidden = drawing;
+    message.required = !drawing;
+    padEl.hidden = !drawing;
+  });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const shapes = pad.shapes();
+    if (drawing && !shapes.length) return shake(form);
+    const data = new FormData(form);
+    if (drawing) {
+      data.set("drawing", JSON.stringify(shapes));
+      data.delete("message");
+    }
+    if (!(await send(form, data))) return shake(form);
+    form.reset();
+    if (drawing) pad.clear();
+  });
+}
+
 document.addEventListener("astro:page-load", () => {
-  const thanks = document.querySelector<HTMLElement>(".thanks");
-  if (thanks && location.search.includes("signed")) thanks.hidden = false;
+  const form = document.querySelector<HTMLFormElement>("form.sign");
+  if (form) setup(form);
 });
 </script>
