@@ -21,23 +21,26 @@ test("gallery builds responsive images with inline placeholders", async (t) => {
   await mkdir(join(art, "img"), { recursive: true });
 
   const originals = new Map();
-  for (const [name, width, height, format] of [
-    ["portrait", 1400, 2800, "png"],
-    ["landscape", 2800, 1400, "jpeg"],
-    ["small", 200, 300, "png"],
+  for (const [name, width, height, format, tags] of [
+    ["portrait", 1400, 2800, "png", "[comic]"],
+    ["landscape", 2800, 1400, "jpeg", "[sketch, illustration]"],
+    ["small", 200, 300, "png", "[]"],
   ]) {
     const original = await sharp({ create: { width, height, channels: 4, background: "#f1a164" } })
       .toFormat(format).toBuffer();
     originals.set(name, { width, height });
     await writeFile(join(art, `img/${name}.${format}`), original);
-    await writeFile(join(art, `${name}.md`), `---\ntitle: ${name}\nimage: img/${name}.${format}\ndate: 2026-10-18\n---\n`);
+    await writeFile(join(art, `${name}.md`), `---\ntitle: ${name}\nimage: img/${name}.${format}\ndate: 2026-10-18\ntags: ${tags}\n---\n`);
   }
+  await writeFile(join(root, "src/data/tags.json"), JSON.stringify({ tags: ["illustration", "background", "comic"] }));
   await run(process.execPath, [join(project, "node_modules/astro/bin/astro.mjs"), "build"], {
     cwd: root,
     timeout: 90_000,
   });
 
   const html = await readFile(join(root, "dist/gallery.html"), "utf8");
+  const filters = [...html.matchAll(/data-tag="([^"]*)"/g)].map((m) => m[1]);
+  assert.deepEqual(filters, ["", "illustration", "comic"]);
   const buttons = [...html.matchAll(/<button\b[^>]*data-full="[^"]+"[^>]*>/g)];
   assert.equal(buttons.length, originals.size);
   for (const [button] of buttons) {

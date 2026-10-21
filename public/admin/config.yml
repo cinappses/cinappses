@@ -13,6 +13,14 @@ editor:
 media_folder: public/uploads
 public_folder: /uploads
 
+singletons:
+  - name: tags
+    label: Art tags
+    icon: sell
+    file: src/data/tags.json
+    fields:
+      - { name: tags, label: Tags, label_singular: Tag, widget: list }
+
 collections:
   - name: status
     label: Status
@@ -42,17 +50,7 @@ collections:
       - { name: title, label: Name }
       - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
       - { name: caption, label: Description, widget: text, required: false }
-      - { name: tags, label: Tags, widget: relation, collection: tags, file: tags, value_field: "tags.*", search_fields: ["tags.*"], display_fields: ["tags.*"], multiple: true, required: false }
-
-  - name: tags
-    label: Tags
-    icon: sell
-    files:
-      - name: tags
-        label: Art tags
-        file: src/data/tags.yml
-        fields:
-          - { name: tags, label: Tags, label_singular: Tag, widget: list, field: { name: tag, label: Tag } }
+      - { name: tags, label: Tags, widget: relation, collection: _singletons, file: tags, value_field: "tags.*", search_fields: ["tags.*"], display_fields: ["tags.*"], multiple: true, required: false }
 
   - name: applings
     label: Applings
