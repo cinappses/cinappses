@@ -98,20 +98,6 @@ collections:
       - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
       - { name: body, label: Notes, widget: markdown, required: false }
 
-  - name: guestbook
-    label: Guestbook
-    label_singular: Entry
-    icon: forum
-    folder: src/content/guestbook
-    create: false
-    sortable_fields: [date]
-    summary: "{{name}}: {{message}}"
-    fields:
-      - { name: name, label: Name }
-      - { name: date, label: Date, widget: datetime }
-      - { name: site, label: Website, required: false }
-      - { name: message, label: Message, widget: text }
-
   - name: pages
     label: Pages
     icon: description

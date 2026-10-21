@@ -1,3 +1,9 @@
 name = "cinappses"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "cinappses"
+database_id = "02b0d74d-7290-4965-aaee-1becc7426328"
+migrations_dir = "migrations"
