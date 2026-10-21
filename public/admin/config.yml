@@ -42,6 +42,7 @@ collections:
       - { name: title, label: Name }
       - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
       - { name: caption, label: Description, widget: text, required: false }
+      - { name: tags, label: Tags, widget: select, multiple: true, required: false, options: [illustration, comic, background] }
 
   - name: applings
     label: Applings
