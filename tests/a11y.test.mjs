@@ -38,4 +38,8 @@ test("built pages keep their accessibility markup", async (t) => {
 
   const about = await readFile(join(out, "about.html"), "utf8");
   assert.match(about, /<div aria-live="polite"><p class="recent"/);
+
+  const lost = await readFile(join(out, "404.html"), "utf8");
+  assert.match(lost, /<title>not found \| cinappses<\/title>/);
+  assert.match(lost, /<h2>404<\/h2><p>try going back <a href="\/">home<\/a>\?<\/p>/);
 });
