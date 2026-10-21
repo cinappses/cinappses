@@ -42,7 +42,17 @@ collections:
       - { name: title, label: Name }
       - { name: date, label: Date, widget: datetime, time_format: false, format: YYYY-MM-DD, default: "{{now}}" }
       - { name: caption, label: Description, widget: text, required: false }
-      - { name: tags, label: Tags, widget: select, multiple: true, required: false, options: [illustration, comic, background] }
+      - { name: tags, label: Tags, widget: relation, collection: tags, file: tags, value_field: "tags.*", search_fields: ["tags.*"], display_fields: ["tags.*"], multiple: true, required: false }
+
+  - name: tags
+    label: Tags
+    icon: sell
+    files:
+      - name: tags
+        label: Art tags
+        file: src/data/tags.yml
+        fields:
+          - { name: tags, label: Tags, label_singular: Tag, widget: list, field: { name: tag, label: Tag } }
 
   - name: applings
     label: Applings
