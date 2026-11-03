@@ -150,6 +150,7 @@ dialog summary { cursor: pointer; }
 .pen img { display: block; image-rendering: pixelated; pointer-events: none; transition: scale .4s var(--boing); }
 
 .recent { margin: 10px 0 0; }
+.recent[hidden] { display: block; visibility: hidden; }
 .recent b, .pen-name { text-transform: lowercase; }
 .recent img { vertical-align: middle; image-rendering: pixelated; }
 
