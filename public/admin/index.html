@@ -35,5 +35,11 @@
 </head>
 <body>
 <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
+<script type="module">
+import photos from "/admin/photos.js";
+CMS.registerEditorComponent(photos);
+CMS.registerPreviewStyle("/photos.css");
+CMS.registerPreviewStyle("body { background: #fffaf0; color: #1d1410; font: 17px/1.5 Seravek, \"Gill Sans Nova\", Ubuntu, Calibri, \"DejaVu Sans\", source-sans-pro, sans-serif; }", { raw: true });
+</script>
 </body>
 </html>
