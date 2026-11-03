@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex">
 <title>cinappses admin</title>
+<link rel="stylesheet" href="/admin/board.css">
 <style>
 :root:root[data-theme] {
   color-scheme: light;
@@ -36,7 +37,10 @@
 <body>
 <script src="https://unpkg.com/@sveltia/cms/dist/sveltia-cms.js"></script>
 <script type="module">
-import photos from "/admin/photos.js";
+import Board from "/admin/board.js";
+import { photo, photos } from "/admin/photos.js";
+CMS.registerFieldType("photo-board", Board);
+CMS.registerEditorComponent(photo);
 CMS.registerEditorComponent(photos);
 CMS.registerPreviewStyle("/photos.css");
 CMS.registerPreviewStyle("body { background: #fffaf0; color: #1d1410; font: 17px/1.5 Seravek, \"Gill Sans Nova\", Ubuntu, Calibri, \"DejaVu Sans\", source-sans-pro, sans-serif; }", { raw: true });

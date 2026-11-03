@@ -6,11 +6,12 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import sharp from "sharp";
-import photos from "../public/admin/photos.js";
+import { photo, photos } from "../public/admin/photos.js";
 
 const run = promisify(execFile);
 
-const parse = (markdown) => photos.fromBlock(markdown.match(photos.pattern));
+const parse = (markdown, component = photos) => component.fromBlock(markdown.match(component.pattern)).board;
+const block = (board, component = photos) => component.toBlock({ board });
 
 test("photos block survives a round trip through the editor", () => {
   const value = {
@@ -21,19 +22,30 @@ test("photos block survives a round trip through the editor", () => {
       { image: "/uploads/my file.png", caption: "" },
     ],
   };
-  const markdown = photos.toBlock(value);
+  const markdown = block(value);
   assert.deepEqual(parse(`before\n\n${markdown}\n\nafter`), value);
-  assert.equal(photos.toBlock(parse(markdown)), markdown);
+  assert.equal(block(parse(markdown)), markdown);
 });
 
-test("empty photos block still matches", () => {
-  const markdown = photos.toBlock({});
+test("photo and photos blocks only match their own layouts", () => {
+  const single = block({ layout: "right", size: "medium", photos: [{ image: "img/a.png", caption: "a" }] }, photo);
+  const many = block({ layout: "grid", size: "small", photos: [{ image: "img/a.png", caption: "" }] });
+  assert.match(single, photo.pattern);
+  assert.doesNotMatch(single, photos.pattern);
+  assert.match(many, photos.pattern);
+  assert.doesNotMatch(many, photo.pattern);
+  assert.equal(parse(single, photo).layout, "right");
+});
+
+test("empty blocks fall back to each component's default layout", () => {
+  assert.match(block({}, photo), /data-layout="center"/);
+  const markdown = block({});
   assert.equal(markdown, '<div class="photos" data-layout="row" data-size="large">\n\n</div>');
   assert.deepEqual(parse(markdown), { layout: "row", size: "large", photos: [] });
 });
 
 test("photos block skips entries without an image", () => {
-  const markdown = photos.toBlock({ photos: [{ caption: "nothing yet" }, { image: "img/a.png" }] });
+  const markdown = block({ photos: [{ caption: "nothing yet" }, { image: "img/a.png" }] });
   assert.deepEqual(parse(markdown).photos, [{ image: "img/a.png", caption: "" }]);
 });
 
@@ -52,7 +64,7 @@ test("built posts turn photos blocks into captioned figures", async (t) => {
   await image(600, 300).jpeg().withMetadata({ orientation: 6 }).toFile(join(posts, "img/tall.jpg"));
   await image(800, 400).toFile(join(root, "public/uploads/wide.png"));
 
-  const block = photos.toBlock({
+  const markdown = block({
     layout: "row",
     size: "large",
     photos: [
@@ -60,7 +72,7 @@ test("built posts turn photos blocks into captioned figures", async (t) => {
       { image: "/uploads/wide.png", caption: "" },
     ],
   });
-  await writeFile(join(posts, "photos.md"), `---\ntitle: photos\ndate: 2026-11-03\n---\n![plain](img/tall.jpg)\n\n${block}\n`);
+  await writeFile(join(posts, "photos.md"), `---\ntitle: photos\ndate: 2026-11-03\n---\n![plain](img/tall.jpg)\n\n${markdown}\n`);
 
   await run(process.execPath, [join(project, "node_modules/astro/bin/astro.mjs"), "build"], { cwd: root, timeout: 120_000 });
   const html = await readFile(join(root, "dist/blog/photos.html"), "utf8");
