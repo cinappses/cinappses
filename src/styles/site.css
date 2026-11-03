@@ -6,8 +6,8 @@
   --accent-dark: #3f6b47;
   --boing: cubic-bezier(.3, 1.8, .5, 1);
   --spring: cubic-bezier(.3, 1.5, .5, 1);
-  --logo-width: 270px;
-  --logo-ratio: 2.4;
+  --logo-width: 240px;
+  --logo-ratio: 2.15;
 }
 
 html { scrollbar-gutter: stable; }
