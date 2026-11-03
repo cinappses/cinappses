@@ -20,7 +20,7 @@ media_libraries:
 field_defaults:
   richtext:
     buttons: [bold, italic, strikethrough, link, heading-three, heading-four, bulleted-list, numbered-list, quote]
-    editor_components: [photos, table, hr]
+    editor_components: [photo, photos, table, hr]
 
 singletons:
   - name: tags
