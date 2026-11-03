@@ -8,7 +8,7 @@ const [latest] = (await getCollection("status")).sort((a, b) => +b.data.date - +
 const { Content: Status } = await render(latest);
 ---
 <!doctype html>
-<html lang="en">
+<html lang="en" transition:animate="none">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
