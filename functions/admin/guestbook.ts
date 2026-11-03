@@ -4,8 +4,8 @@ type Context = { request: Request; env: { DB: Database } };
 
 const REPO = "cinappses/cinappses";
 
-const style = `body{margin:0 auto;max-width:640px;padding:16px;background:#fff3d6;color:#1d1410;font:17px/1.5 Seravek,"Gill Sans Nova",Ubuntu,Calibri,"DejaVu Sans",sans-serif}
-li{border-top:2px dashed #f1a164;padding:8px 0;list-style:none}ul{padding:0}p{margin:0 0 4px;overflow-wrap:anywhere;white-space:pre-line}
+const style = `body{margin:0 auto;max-width:640px;padding:16px;background:#e9f2dc;color:#1d1410;font:17px/1.5 Seravek,"Gill Sans Nova",Ubuntu,Calibri,"DejaVu Sans",sans-serif}
+li{border-top:2px dashed #9cc59a;padding:8px 0;list-style:none}ul{padding:0}p{margin:0 0 4px;overflow-wrap:anywhere;white-space:pre-line}
 .art{display:block;width:240px;height:auto;border:2px solid #1d1410}button{font:inherit;border:2px solid #1d1410;background:#fffaf0;cursor:pointer}`;
 
 const script = `const token = JSON.parse(localStorage.getItem("sveltia-cms.user") || "null")?.token;
