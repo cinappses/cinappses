@@ -40,7 +40,7 @@ import { ERASER, PALETTE, SIZES } from "../lib/guestbook";
 <div class="entries"></div>
 </Base>
 <script>
-import { ERASER, HEIGHT, MAX_POINTS, MAX_SHAPES, PALETTE, WIDTH, pathPoints, strokePath, type Shape, type Stroke } from "../lib/guestbook";
+import { ERASER, HEIGHT, MAX_DRAWING_BYTES, MAX_POINTS, MAX_SHAPES, MAX_STROKE_POINTS, PALETTE, WIDTH, drawingFits, drawingUsage, strokePath, type Shape, type Stroke } from "../lib/guestbook";
 
 function choose(buttons: NodeListOf<HTMLButtonElement>, pick: (i: number) => void) {
   buttons.forEach((button, i) => button.addEventListener("click", () => {
@@ -63,66 +63,121 @@ function drawingPad(el: HTMLElement) {
   canvas.height = HEIGHT * scale;
   ctx.scale(scale, scale);
   const pad = { shapes: [] as Shape[], color: 0, size: 1 };
+  const backing = document.createElement("canvas");
+  backing.width = canvas.width;
+  backing.height = canvas.height;
+  const saved = backing.getContext("2d")!;
+  saved.scale(scale, scale);
   let current: Stroke | null = null;
+  let accepted: Shape | null = null;
+  let pointer: number | null = null;
+  let frame = 0;
+  let usage = drawingUsage(pad.shapes);
 
-  const used = () => pad.shapes.reduce((total, shape) => total + pathPoints(shape.d), 0);
-  const fill = (color: number, d: string) => {
-    ctx.fillStyle = PALETTE[color][1];
-    ctx.fill(new Path2D(d));
+  const fill = (target: CanvasRenderingContext2D, shape: Shape) => {
+    target.fillStyle = PALETTE[shape.color][1];
+    target.fill(new Path2D(shape.d));
+  };
+  const meter = (shape: Shape | null) => {
+    const next = shape ? drawingUsage([shape]) : { bytes: 0, points: 0, shapes: 0 };
+    ink.style.width = `${100 * Math.min(1, Math.max(
+      (usage.bytes + next.bytes) / MAX_DRAWING_BYTES,
+      (usage.points + next.points) / MAX_POINTS,
+      (usage.shapes + next.shapes) / MAX_SHAPES,
+    ))}%`;
   };
   const redraw = () => {
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, WIDTH, HEIGHT);
-    pad.shapes.forEach((shape) => fill(shape.color, shape.d));
-    if (current) fill(current.color, strokePath(current));
-    ink.style.width = `${(100 * used()) / MAX_POINTS}%`;
+    ctx.drawImage(backing, 0, 0, WIDTH, HEIGHT);
+    if (accepted) fill(ctx, accepted);
+    meter(accepted);
   };
+  const rebuild = () => {
+    saved.fillStyle = "#fff";
+    saved.fillRect(0, 0, WIDTH, HEIGHT);
+    pad.shapes.forEach((shape) => fill(saved, shape));
+    usage = drawingUsage(pad.shapes);
+    redraw();
+  };
+  const update = () => {
+    frame = 0;
+    if (!current) return;
+    const shape = { color: current.color, d: strokePath(current) };
+    if (shape.d && drawingFits(usage, shape)) accepted = shape;
+    else {
+      current = null;
+      shake(el);
+    }
+    redraw();
+  };
+  const schedule = () => { if (current && !frame) frame = requestAnimationFrame(update); };
   const addPoint = (e: PointerEvent) => {
+    if (!current) return;
+    if (current.points.length >= MAX_STROKE_POINTS) {
+      cancelAnimationFrame(frame);
+      update();
+      current = null;
+      shake(el);
+      return;
+    }
     const box = canvas.getBoundingClientRect();
     const round = (n: number, max: number) => Math.round(Math.min(max, Math.max(0, n)) * 10) / 10;
     const x = round(((e.clientX - box.left) * WIDTH) / box.width, WIDTH);
     const y = round(((e.clientY - box.top) * HEIGHT) / box.height, HEIGHT);
     const pressure = e.pointerType === "pen" ? Math.round(e.pressure * 100) / 100 : 0.5;
-    const last = current!.points.at(-1);
-    if (!last || Math.hypot(x - last[0], y - last[1]) >= 2) current!.points.push([x, y, pressure]);
+    const last = current.points.at(-1);
+    if (!last || Math.hypot(x - last[0], y - last[1]) >= 0.5 || Math.abs(pressure - last[2]) >= 0.02) current.points.push([x, y, pressure]);
   };
-  const finish = (stroke: Stroke) => {
-    const d = strokePath(stroke);
-    if (!d) return;
-    if (used() + pathPoints(d) > MAX_POINTS) return shake(el);
-    pad.shapes.push({ color: stroke.color, d });
+  const finish = () => {
+    cancelAnimationFrame(frame);
+    update();
+    if (accepted) {
+      pad.shapes.push(accepted);
+      fill(saved, accepted);
+      usage = drawingUsage(pad.shapes);
+    }
+    current = null;
+    accepted = null;
+    pointer = null;
+    redraw();
   };
   canvas.onpointerdown = (e) => {
-    if (pad.shapes.length >= MAX_SHAPES || used() >= MAX_POINTS) return shake(el);
+    if (pointer !== null) return;
+    if (usage.shapes >= MAX_SHAPES || usage.points >= MAX_POINTS || usage.bytes >= MAX_DRAWING_BYTES) return shake(el);
     canvas.setPointerCapture(e.pointerId);
+    pointer = e.pointerId;
     current = { color: e.button === 5 ? ERASER : pad.color, size: pad.size, points: [] };
     addPoint(e);
-    redraw();
+    schedule();
   };
   canvas.onpointermove = (e) => {
-    if (!current) return;
+    if (e.pointerId !== pointer || !current) return;
     const events = e.getCoalescedEvents?.() ?? [];
     (events.length ? events : [e]).forEach(addPoint);
-    redraw();
+    schedule();
   };
-  canvas.onpointerup = canvas.onpointercancel = () => {
-    if (current) finish(current);
-    current = null;
-    redraw();
+  canvas.onpointerup = (e) => {
+    if (e.pointerId !== pointer) return;
+    if (current) addPoint(e);
+    finish();
+  };
+  canvas.onpointercancel = canvas.onlostpointercapture = (e) => {
+    if (e.pointerId === pointer) finish();
   };
   choose(el.querySelectorAll(".color"), (i) => (pad.color = i));
   choose(el.querySelectorAll(".size"), (i) => (pad.size = i));
   el.querySelector<HTMLButtonElement>(".undo")!.onclick = () => {
+    finish();
     pad.shapes.pop();
-    redraw();
+    rebuild();
   };
   const clear = () => {
+    finish();
     pad.shapes = [];
-    redraw();
+    rebuild();
   };
   el.querySelector<HTMLButtonElement>(".clear")!.onclick = clear;
-  redraw();
-  return { clear, shapes: () => pad.shapes };
+  rebuild();
+  return { clear, shapes: () => { finish(); return pad.shapes; } };
 }
 
 async function send(form: HTMLFormElement, data: FormData) {

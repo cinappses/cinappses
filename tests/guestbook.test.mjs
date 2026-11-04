@@ -6,7 +6,7 @@ import { onRequestGet as adminGet, onRequestPost as adminPost } from "../functio
 import { onRequestGet as drawing } from "../functions/api/drawing/[id].ts";
 import { onRequestPost as sign } from "../functions/api/sign.ts";
 import { onRequestGet as guestbook } from "../functions/guestbook.ts";
-import { ERASER, MAX_POINTS, MAX_SHAPES, cleanMessage, cleanName, cleanSite, entryHtml, parseDrawing, pathPoints, readEntry, strokePath, svg } from "../src/lib/guestbook.ts";
+import { ERASER, MAX_DRAWING_BYTES, MAX_POINTS, MAX_SHAPES, drawingFits, drawingUsage, cleanMessage, cleanName, cleanSite, entryHtml, parseDrawing, pathPoints, readEntry, strokePath, svg } from "../src/lib/guestbook.ts";
 
 async function database() {
   const db = new DatabaseSync(":memory:");
@@ -47,17 +47,15 @@ test("drawings are validated before they are stored", () => {
     { color: 0, d: 'M1,1 Z"/><script>alert(1)</script><path d="Z' },
     { color: 0, d: "M1.0,1.0 L5.0,5.0 Z" },
     { color: 0, d: "M1.0,1.0 Q2.0,2.0 3.0,3.0" },
-    { color: 0, d: "M1,1 Q2,2 3,3 TZ" },
     { color: 0, d: "M1000.0,1.0 Q2.0,2.0 3.0,3.0 TZ" },
     { color: 0, d: "M1.25,1.0 Q2.0,2.0 3.0,3.0 TZ" },
-    { color: 0, d: "M1.0,1.0 Q2.0,2.0 3.0,3.0 T4.0,4.0Z" },
     { color: 0, d: "M1.0,1.0 Q2.0,2.0 3.0,3.0 T4.0,4.0  Z" },
   ];
   for (const item of bad) assert.equal(parseDrawing(JSON.stringify([item])), null, JSON.stringify(item));
   for (const raw of ["", "nope", "[]", "{}", "[null]", "[1]"]) assert.equal(parseDrawing(raw), null, raw);
   assert.equal(parseDrawing(JSON.stringify(Array(MAX_SHAPES + 1).fill(shape))), null);
   assert.equal(parseDrawing(JSON.stringify(Array(MAX_SHAPES).fill(shape))).length, MAX_SHAPES);
-  const heavy = { color: 0, d: `M1.0,1.0 Q2.0,2.0 3.0,3.0 T${"4.0,4.0 ".repeat(MAX_POINTS / 4 - 3)}Z` };
+  const heavy = { color: 0, d: `M1,1Q2,2 3,3T${"4,4 ".repeat(MAX_POINTS / 4 - 3)}Z` };
   assert.equal(pathPoints(heavy.d), MAX_POINTS / 4);
   assert.equal(parseDrawing(JSON.stringify(Array(4).fill(heavy))).length, 4);
   assert.equal(parseDrawing(JSON.stringify([...Array(4).fill(heavy), shape])), null);
@@ -66,7 +64,7 @@ test("drawings are validated before they are stored", () => {
 test("pen pressure changes the stroke width", () => {
   const width = (pressure) => {
     const d = strokePath({ color: 0, size: 2, points: [[20, 100, pressure], [180, 100, pressure], [340, 100, pressure]] });
-    const ys = [...d.matchAll(/,(-?[\d.]+)/g)].map((m) => Number(m[1]));
+    const ys = coordinates(d).map((point) => point[1]);
     return Math.max(...ys) - Math.min(...ys);
   };
   assert.ok(width(1) > width(0.5) * 1.3);
@@ -111,7 +109,7 @@ test("drawings render as filled svg paths", () => {
     svg([{ color: 1, d: "M1,2 Q3,4 5,6 TZ" }]),
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 240"><rect width="360" height="240" fill="#fff"/><path d="M1,2 Q3,4 5,6 TZ" fill="#d6402b"/></svg>',
   );
-  assert.match(JSON.parse(dot)[0].d, /^M[-\d., QT]+Z$/);
+  assert.match(JSON.parse(dot)[0].d, /^M[-\d., QTt]+Z$/);
 });
 
 test("entries need a name and a message or a drawing", () => {
@@ -205,4 +203,71 @@ test("the admin page deletes entries only for people who can push to the repo", 
   assert.ok(seen.every((u) => u === "https://api.github.com/repos/cinappses/cinappses"));
   await sign({ request: post({ name: "next", message: "hi" }), env: { DB } });
   assert.equal((await DB.prepare("select id from entries").first()).id, 2);
+});
+
+function coordinates(d) {
+  let command = "";
+  let end = [0, 0];
+  return [...d.matchAll(/([MQTt]?)\s*(-?(?:\d+(?:\.\d)?|\.\d)),(-?(?:\d+(?:\.\d)?|\.\d))/g)].map((match) => {
+    command = match[1] || command;
+    const pair = [Number(match[2]), Number(match[3])];
+    end = command === "t" ? pair.map((n, i) => Math.round((n + end[i]) * 10) / 10) : pair;
+    return end;
+  });
+}
+
+test("drawing capacity uses the same serialized budget as validation", () => {
+  const shape = JSON.parse(dot)[0];
+  const shapes = Array(1000).fill(shape);
+  assert.equal(drawingUsage(shapes).bytes, JSON.stringify(shapes).length);
+  assert.ok(parseDrawing(JSON.stringify(shapes)));
+  const usage = drawingUsage(shapes);
+  assert.ok(drawingFits(usage, shape));
+  assert.equal(drawingFits({ ...usage, bytes: MAX_DRAWING_BYTES }, shape), false);
+  assert.equal(drawingFits({ ...usage, points: MAX_POINTS }, shape), false);
+  assert.equal(drawingFits({ ...usage, shapes: MAX_SHAPES }, shape), false);
+  assert.equal(parseDrawing(" ".repeat(MAX_DRAWING_BYTES + 1)), null);
+  assert.equal(parseDrawing(JSON.stringify([{ color: 0, d: "M.1,-.2Q3,4 5,6t-.5,.5 1,-1Z" }] )).length, 1);
+});
+
+test("compacted paths preserve every original coordinate", async () => {
+  const { getStroke } = await import("perfect-freehand");
+  const { default: simplify } = await import("simplify-js");
+  for (let sample = 0; sample < 30; sample++) {
+    const stroke = {
+      color: sample % 9,
+      size: sample % 3,
+      points: Array.from({ length: 100 }, (_, i) => [
+        180 + Math.sin(i * (sample + 1) / 30) * 170,
+        120 + Math.cos(i / 10) * 110,
+        (Math.sin(i / 5) + 1) / 2,
+      ]),
+    };
+    const outline = getStroke(stroke.points, { size: [4, 8, 18][stroke.size], thinning: stroke.color === ERASER ? 0 : 0.6, simulatePressure: false });
+    const points = simplify(outline.map(([x, y]) => ({ x, y })), 0.25, true);
+    const round = (n) => Number(n.toFixed(1)) || 0;
+    const expected = [[points[0].x, points[0].y], [points[1].x, points[1].y]];
+    for (let i = 1; i < points.length - 1; i++) expected.push([(points[i].x + points[i + 1].x) / 2, (points[i].y + points[i + 1].y) / 2]);
+    const d = strokePath(stroke);
+    assert.deepEqual(coordinates(d), expected.map((pair) => pair.map(round)));
+    assert.ok(parseDrawing(JSON.stringify([{ color: stroke.color, d }])));
+  }
+});
+
+test("compressed storage round-trips drawings and preserves legacy entries", async () => {
+  const { packDrawing, unpackDrawing } = await import("../src/lib/drawing-storage.ts");
+  const art = svg(Array(1000).fill(JSON.parse(dot)[0]));
+  const packed = await packDrawing(art);
+  assert.ok(packed.length < art.length / 4);
+  assert.equal(await unpackDrawing(packed), art);
+  assert.equal(await unpackDrawing(art), art);
+  assert.equal(await packDrawing("tiny"), "tiny");
+
+  const DB = await database();
+  const res = await sign({ request: post({ name: "pip", drawing: JSON.stringify(Array(1000).fill(JSON.parse(dot)[0])) }, { "x-fragment": "1" }), env: { DB } });
+  assert.equal(res.status, 201);
+  const stored = await DB.prepare("select drawing from entries where id = 1").first();
+  assert.match(stored.drawing, /^gzip:/);
+  const served = await drawing({ params: { id: "1" }, env: { DB } });
+  assert.equal(await served.text(), art);
 });
