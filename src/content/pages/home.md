@@ -2,6 +2,8 @@
 title: Home
 ---
 
-Luci Lofthouse | He/She | apple guy who draws
+`<p style="text-align: center;">` **Luci** Lofthouse | He/She | apple guy who draws `</p>`
 
-Welcome to my website! Please enjoy my strange little catalog of art and stuff I like. This site is best viewed on desktop!
+`<p style="text-align: center;">` Welcome to my website! This is my personal art archive, as well as a catalogue of stuff that makes me happy. This site is best viewed on desktop! Have fun looking around! `</p>`
+
+`<p style="text-align: center;">` Special thanks to the incomparably lovely [rosematcha](https://rosematcha.com/), who this website would not exist without. `</p>`
