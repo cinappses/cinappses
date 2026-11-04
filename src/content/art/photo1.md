@@ -7,4 +7,5 @@ caption: |-
   For Emberchii.
 tags:
   - illustration
+  - comic
 ---
