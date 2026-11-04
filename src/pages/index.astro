@@ -4,4 +4,4 @@ import Base from "../layouts/Base.astro";
 
 const { Content } = await render((await getEntry("pages", "home"))!);
 ---
-<Base><Content /></Base>
+<Base><div class="home"><Content /></div></Base>
