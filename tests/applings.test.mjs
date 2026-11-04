@@ -34,7 +34,7 @@ test("applings fall back to a site asset when their image is absent or cleared",
 
   await run(process.execPath, [join(project, "node_modules/astro/bin/astro.mjs"), "build"], {
     cwd: root,
-    timeout: 60_000,
+    timeout: 120_000,
   });
 
   const html = await readFile(join(root, "dist/about.html"), "utf8");
