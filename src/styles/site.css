@@ -87,6 +87,7 @@ main {
   scrollbar-color: var(--ink) var(--paper);
 }
 main h2 { margin-top: 0; }
+.home { text-align: center; }
 
 nav ul {
   list-style: none;
