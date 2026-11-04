@@ -16,8 +16,10 @@ export const PALETTE = [
 ] as const;
 export const ERASER = PALETTE.length - 1;
 export const SIZES = [4, 8, 18];
-export const MAX_SHAPES = 300;
-export const MAX_POINTS = 6000;
+export const MAX_SHAPES = 5000;
+export const MAX_POINTS = 100_000;
+export const MAX_DRAWING_BYTES = 512_000;
+export const MAX_STROKE_POINTS = 4096;
 
 export type Stroke = { color: number; size: number; points: number[][] };
 export type Entry = { id: number; name: string; site: string | null; message: string | null; drawn: number; created: number };
@@ -40,24 +42,49 @@ export function strokePath(stroke: Stroke) {
   const outline = getStroke(stroke.points, { size: SIZES[stroke.size], thinning, simulatePressure: false });
   const points = simplify(outline.map(([x, y]) => ({ x, y })), 0.25, true);
   if (points.length < 4) return "";
-  let [a, b] = points;
-  const c = points[2];
-  let path = `M${a.x.toFixed(1)},${a.y.toFixed(1)} Q${b.x.toFixed(1)},${b.y.toFixed(1)} ${average(b.x, c.x).toFixed(1)},${average(b.y, c.y).toFixed(1)} T`;
+  const pair = (x: number, y: number) => `${decimal(x)},${decimal(y)}`;
+  const [a, b, c] = points;
+  let end = [tenths(average(b.x, c.x)), tenths(average(b.y, c.y))];
+  const start = `M${pair(a.x, a.y)}Q${pair(b.x, b.y)} ${pair(end[0] / 10, end[1] / 10)}`;
+  const absolute: string[] = [];
+  const relative: string[] = [];
   for (let i = 2; i < points.length - 1; i++) {
-    a = points[i];
-    b = points[i + 1];
-    path += `${average(a.x, b.x).toFixed(1)},${average(a.y, b.y).toFixed(1)} `;
+    const next = [tenths(average(points[i].x, points[i + 1].x)), tenths(average(points[i].y, points[i + 1].y))];
+    absolute.push(pair(next[0] / 10, next[1] / 10));
+    relative.push(pair((next[0] - end[0]) / 10, (next[1] - end[1]) / 10));
+    end = next;
   }
-  return path + "Z";
+  const abs = `T${absolute.join(" ")}`;
+  const rel = `t${relative.join(" ")}`;
+  return `${start}${rel.length < abs.length ? rel : abs}Z`;
 }
+
+const tenths = (n: number) => Math.round(Number(n.toFixed(1)) * 10);
+
+const decimal = (n: number) => Number(n.toFixed(1)).toString().replace(/^(-?)0\./, "$1.");
 
 export const pathPoints = (d: string) => d.split(",").length - 1;
 
 export type Shape = { color: number; d: string };
 
-const NUMBER = String.raw`-?\d{1,3}\.\d`;
+export const shapeBytes = (shape: Shape) => JSON.stringify(shape).length;
+
+export function drawingUsage(shapes: Shape[]) {
+  return shapes.reduce((usage, shape) => ({
+    bytes: usage.bytes + shapeBytes(shape) + (usage.shapes ? 1 : 0),
+    points: usage.points + pathPoints(shape.d),
+    shapes: usage.shapes + 1,
+  }), { bytes: 2, points: 0, shapes: 0 });
+}
+
+export function drawingFits(usage: ReturnType<typeof drawingUsage>, shape: Shape) {
+  return usage.shapes < MAX_SHAPES && usage.points + pathPoints(shape.d) <= MAX_POINTS &&
+    usage.bytes + shapeBytes(shape) + (usage.shapes ? 1 : 0) <= MAX_DRAWING_BYTES;
+}
+
+const NUMBER = String.raw`-?(?:\d{1,3}(?:\.\d)?|\.\d)`;
 const POINT = `${NUMBER},${NUMBER}`;
-const PATH = new RegExp(`^M${POINT} Q${POINT} ${POINT} T(?:${POINT} )*Z$`);
+const PATH = new RegExp(`^M${POINT} ?Q${POINT} ${POINT} ?[Tt](?:${POINT}(?: ${POINT})* ?)?Z$`);
 
 const isShape = (shape: Shape) =>
   Number.isInteger(shape?.color) && shape.color >= 0 && shape.color < PALETTE.length && typeof shape.d === "string" && PATH.test(shape.d);
@@ -70,7 +97,7 @@ const isDrawing = (shapes: unknown): shapes is Shape[] =>
   shapes.reduce((total, shape) => total + pathPoints(shape.d), 0) <= MAX_POINTS;
 
 export function parseDrawing(raw: string): Shape[] | null {
-  if (!raw || raw.length > 100_000) return null;
+  if (!raw || raw.length > MAX_DRAWING_BYTES) return null;
   try {
     const shapes = JSON.parse(raw);
     return isDrawing(shapes) ? shapes.map(({ color, d }) => ({ color, d })) : null;
