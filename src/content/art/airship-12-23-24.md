@@ -6,4 +6,5 @@ caption: A painting of four people dressed in garb from Final Fantasy 3. At the 
 tags:
   - illustration
   - background
+  - fanart
 ---
