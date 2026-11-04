@@ -1,0 +1,16 @@
+blockquote { margin: 22px 10px; padding: 10px 16px; background: #dcebc9; border: 2px solid #1d1410; box-shadow: 4px 4px 0 #1d1410; rotate: 1deg; }
+blockquote > :first-child { margin-top: 0; }
+blockquote > :last-child { margin-bottom: 0; }
+
+table { margin: 18px 0; border: 2px solid #1d1410; border-radius: 3px 8px 4px 6px; border-spacing: 0; background: #fff; box-shadow: 4px 4px 0 #1d1410; }
+th, td { padding: 4px 14px; text-align: left; }
+th { background: #9cc59a; border-bottom: 2px solid #1d1410; }
+th:first-child { border-top-left-radius: 1px; }
+th:last-child { border-top-right-radius: 6px; }
+:is(th, td) + :is(th, td) { border-left: 1px dashed #1d1410; }
+
+hr { margin: 26px 0; border: 0; border-top: 2px dashed #1d1410; }
+
+details:not(dialog *) { margin: 18px 0; }
+details:not(dialog *) > summary { font-weight: bold; cursor: pointer; transition: color .2s; }
+details:not(dialog *) > summary:is(:hover, :focus-visible) { color: #3f6b47; }
