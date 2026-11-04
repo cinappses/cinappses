@@ -8,10 +8,9 @@ When I'm not drawing or looking at other people's drawings, I'm playing video ga
 
 Stuff I like: Cooking, gardening, driving (traffic nonwithstanding), comics/manga, rpgs, magical girls, chickens and cows, etymology and other such trivia, those chalky grocery store sugar cookies 
 
-```plain
 <details>
 <summary>Here's a bunch more stuff I like!</summary>
-<br>
+
 MOVIES: Knives Out, Portrait of a Lady on Fire, To Wong Foo: Thanks For Everything! Julie Newmar, Clue, Kiki's Delivery Service
 
 GAMES: PMD2, Night in the Woods, Break Wolf, Gitaroo Man, Persona 4 Golden, Mad Rat Dead, Sayonara Wild Hearts, Gnosia, Harvest Moon Animal Parade, Resident Evil 4 (+Resident Evil 4: Otome Edition), VA-LL HALL-A, I Am Your Beast, Chicory: A Colorful Tale, Witch's Heart, Fire Emblem Echoes: Shadows of Valentia
@@ -20,6 +19,4 @@ COMICS: Caterer at the Maiko Manor, Gourmet Hound, Shootaround, Folded, Witch Ha
 
 SHOWS: Kekkai Sensen, Midnight Diner, A Place Further than the Universe, Decolonize Dungeon, Columbo, We Are Lady Parts, Abbott Elementary, Bocchi the Rock
 
-
 </details>
-```

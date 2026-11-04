@@ -48,4 +48,8 @@ test("built pages render dropdown text as markdown", async (t) => {
   assert.match(inside, /<p>MOVIES: <strong>Clue<\/strong><\/p>/);
   assert.match(inside, /<p>GAMES: PMD2<\/p>/);
   assert.match(html, /<\/details>\s*<p>after<\/p>/);
+
+  const about = await readFile(join(root, "dist/about.html"), "utf8");
+  assert.match(about, /<details>\s*<summary>Here's a bunch more stuff I like!<\/summary>/);
+  assert.doesNotMatch(about, /&lt;details&gt;/);
 });
