@@ -12,4 +12,5 @@ caption: |-
   MAE: "Or afraid."
 tags:
   - comic
+  - original
 ---
