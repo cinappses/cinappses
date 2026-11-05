@@ -206,6 +206,7 @@ function setup(form: HTMLFormElement) {
     message.required = !drawing;
     padEl.hidden = !drawing;
   });
+  tabs.querySelectorAll("button")[1].click();
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const shapes = pad.shapes();
