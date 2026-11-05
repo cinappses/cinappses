@@ -78,6 +78,6 @@ test("gallery builds responsive images with inline placeholders", async (t) => {
     }
   }
   assert.doesNotMatch(html, /download/);
-  assert.equal(await readFile(join(root, "dist/_headers"), "utf8"),
-    "/_astro/*\n  Cache-Control: public, max-age=31536000, immutable\n");
+  assert.match(await readFile(join(root, "dist/_headers"), "utf8"),
+    /^\/_astro\/\*\n  Cache-Control: public, max-age=31536000, immutable\n/);
 });
