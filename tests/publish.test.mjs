@@ -77,15 +77,40 @@ test("publishing adds an empty commit on main with the signed in token", async (
   assert.ok(calls.every((c) => c.auth === "token gho_x"));
 });
 
-test("a refused commit surfaces as an error even though github answers 200", async (t) => {
+test("a failed graphql commit falls back to the rest api", async (t) => {
+  const calls = [];
   const realFetch = globalThis.fetch;
-  globalThis.localStorage = { getItem: () => null };
-  globalThis.fetch = async (url) => Response.json(String(url).endsWith("/graphql") ? { errors: [{ message: "protected branch" }] } : { object: { sha: "head" } });
+  globalThis.localStorage = { getItem: () => JSON.stringify({ token: "gho_x" }) };
+  globalThis.fetch = async (url, init = {}) => {
+    const path = String(url).replace("https://api.github.com", "").replace("/repos/cinappses/cinappses", "");
+    calls.push({ path, method: init.method ?? "GET", body: init.body && JSON.parse(init.body) });
+    const replies = { "/git/ref/heads/main": { object: { sha: "head" } }, "/graphql": { errors: [{ message: "Something went wrong" }] }, "/git/commits/head": { tree: { sha: "tree" } }, "/git/commits": { sha: "new" } };
+    return Response.json(replies[path] ?? {});
+  };
   t.after(() => {
     globalThis.fetch = realFetch;
     delete globalThis.localStorage;
   });
-  await assert.rejects(publish(), /protected branch/);
+
+  await publish();
+  assert.deepEqual(calls.map((c) => `${c.method} ${c.path}`), ["GET /git/ref/heads/main", "POST /graphql", "GET /git/commits/head", "POST /git/commits", "PATCH /git/refs/heads/main"]);
+  assert.deepEqual(calls[3].body, { message: "chore: publish changes", tree: "tree", parents: ["head"] });
+  assert.deepEqual(calls[4].body, { sha: "new" });
+});
+
+test("a commit refused both ways surfaces as an error", async (t) => {
+  const realFetch = globalThis.fetch;
+  globalThis.localStorage = { getItem: () => null };
+  globalThis.fetch = async (url, init = {}) => {
+    if (String(url).endsWith("/graphql")) return Response.json({ errors: [{ message: "protected branch" }] });
+    if (init.method === "PATCH") return new Response("", { status: 422 });
+    return Response.json({ object: { sha: "head" }, tree: { sha: "tree" }, sha: "new" });
+  };
+  t.after(() => {
+    globalThis.fetch = realFetch;
+    delete globalThis.localStorage;
+  });
+  await assert.rejects(publish(), /422/);
 });
 
 test("a rejected push surfaces as an error", async (t) => {

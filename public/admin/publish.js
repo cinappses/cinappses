@@ -49,17 +49,29 @@ const fetchCommits = async () => {
   return (await github(`/compare/${live}...main`)).commits;
 };
 
-export const publish = async () => {
-  const { object } = await github("/git/ref/heads/main");
+const message = "chore: publish changes";
+
+const commitGraphql = async (head) => {
   const input = {
     branch: { repositoryNameWithOwner: "cinappses/cinappses", branchName: "main" },
-    message: { headline: "chore: publish changes" },
-    expectedHeadOid: object.sha,
+    message: { headline: message },
+    expectedHeadOid: head,
     fileChanges: {},
   };
   const query = "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }";
   const { errors } = await github("/graphql", { method: "POST", body: JSON.stringify({ query, variables: { input } }) });
   if (errors) throw new Error(errors[0].message);
+};
+
+const commitRest = async (head) => {
+  const { tree } = await github(`/git/commits/${head}`);
+  const made = await github("/git/commits", { method: "POST", body: JSON.stringify({ message, tree: tree.sha, parents: [head] }) });
+  await github("/git/refs/heads/main", { method: "PATCH", body: JSON.stringify({ sha: made.sha }) });
+};
+
+export const publish = async () => {
+  const { object } = await github("/git/ref/heads/main");
+  await commitGraphql(object.sha).catch(() => commitRest(object.sha));
 };
 
 export const start = () => {
