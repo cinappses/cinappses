@@ -1,7 +1,7 @@
 ---
 image: img/HadalZonePage7Final.png
 title: Hadal Zone 7
-date: 2024-05-29
+date: 2024-05-23
 caption: |-
   Page seven of Hadal Zone, Luci's senior thesis comic. Mae races through a blue-lit hallway, narrating to themselves as the elevator door slowly shuts them in.
   TEXT;
