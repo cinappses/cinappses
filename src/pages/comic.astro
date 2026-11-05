@@ -1,4 +1,7 @@
 ---
+import { getEntry, render } from "astro:content";
 import Base from "../layouts/Base.astro";
+
+const { Content } = await render((await getEntry("pages", "comic"))!);
 ---
-<Base title="comic"><div class="soon"><h2>COMING SOON...</h2><a href="/">back</a></div></Base>
+<Base title="comic"><div class="comic"><Content /></div></Base>

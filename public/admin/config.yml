@@ -126,3 +126,9 @@ collections:
         fields:
           - { name: title, label: Title, widget: hidden }
           - { name: body, label: Text, widget: markdown }
+      - name: comic
+        label: Comic
+        file: src/content/pages/comic.md
+        fields:
+          - { name: title, label: Title, widget: hidden }
+          - { name: body, label: Text, widget: markdown }
