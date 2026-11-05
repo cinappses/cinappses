@@ -17,6 +17,7 @@ hey everyone get on this? please. This is the most fun I've had with high fantas
 **READING: The Pumpkin Spice Cafe (Laurie Gilmore) + Seeing Further (Esther Kinsky) + The Ethical Slut (Dossie Easton and Janet Hardy)**
 
 "Luci", I can hear you saying. "That is the most baffling trio of books you could possibly be reading at one time. What is wrong with you."
+
 Much.
 
 **EXCITED FOR:** Season 2 of Twisted Wonderland to utterly obliterate me
