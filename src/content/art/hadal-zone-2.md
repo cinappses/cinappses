@@ -1,7 +1,7 @@
 ---
 image: img/HadalZonePage2Final.png
 title: Hadal Zone 2
-date: 2024-05-21
+date: 2024-05-28
 caption: |-
   Page two of Hadal Zone, Luci's senior thesis comic. A tan woman in a red jacket swims through the deep sea, pursued by shadows that close in on her like the jaws of a great beast.
   TEXT;
