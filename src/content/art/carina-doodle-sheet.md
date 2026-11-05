@@ -6,5 +6,5 @@ caption: A doodle page of Carina, a Black magical girl with short, textured hair
 tags:
   - illustration
   - original
-  - recatalyze
+  - recatalyzed
 ---
