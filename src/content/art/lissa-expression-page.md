@@ -6,5 +6,5 @@ caption: Several drawn headshots of Lissa, a nonbinary person with a rose-themed
 tags:
   - illustration
   - original
-  - recatalyze
+  - recatalyzed
 ---
