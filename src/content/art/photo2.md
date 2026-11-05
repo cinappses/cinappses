@@ -8,4 +8,5 @@ caption: |-
 tags:
   - illustration
   - comic
+  - original
 ---
