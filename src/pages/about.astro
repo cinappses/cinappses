@@ -21,8 +21,6 @@ const applings = await getCollection("applings");
 <div aria-live="polite"><p class="recent" hidden>selected appling: <img alt="" width="24" height="24"> <b></b><span>, <a></a></span></p></div>
 </Base>
 <script>
-const SIZE = 56;
-const R = SIZE / 2;
 const FRICTION = 0.97;
 const BOUNCE = 0.6;
 const WALL_BOUNCE = 0.85;
@@ -42,12 +40,16 @@ document.addEventListener("astro:page-load", () => {
   const pen = found;
   const tag = pen.querySelector<HTMLElement>(".pen-name")!;
   const recent = document.querySelector<HTMLElement>(".recent")!;
-  const cols = Math.floor(pen.clientWidth / (SIZE + 12));
-  pen.style.minHeight = `${Math.ceil(pen.querySelectorAll("button").length / cols) * (SIZE + 12) + 80}px`;
+  const css = getComputedStyle(pen);
+  const SIZE = parseFloat(css.getPropertyValue("--size"));
+  const R = SIZE / 2;
+  const cols = Math.max(5, Math.floor(pen.clientWidth / (SIZE + 12)));
+  const gap = Math.min(SIZE + parseFloat(css.getPropertyValue("--gap")), pen.clientWidth / cols);
+  pen.style.minHeight = `${(Math.ceil(pen.querySelectorAll("button").length / cols) + 1) * gap}px`;
   const balls: Ball[] = [...pen.querySelectorAll<HTMLElement>("button")].map((el, i) => ({
     el,
-    x: R + 6 + (i % cols) * (SIZE + 12) + Math.random() * 8,
-    y: R + 6 + Math.floor(i / cols) * (SIZE + 12) + Math.random() * 8,
+    x: R + 6 + (i % cols) * gap + Math.random() * 8,
+    y: R + 6 + Math.floor(i / cols) * gap + Math.random() * 8,
     vx: 0,
     vy: 0,
     face: Math.random() < 0.5 ? -1 : 1,
