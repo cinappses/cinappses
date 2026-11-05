@@ -46,8 +46,7 @@ test("an unknown live commit leaves the button usable", () => {
 });
 
 test("the button says what it will do", () => {
-  assert.deepEqual(view({ state: "waiting", count: 3 }), { text: "3 saved, going live in a minute", label: "put 3 changes on the site", busy: false });
-  assert.equal(view({ state: "waiting", count: 1 }).label, "put 1 change on the site");
+  assert.deepEqual(view({ state: "waiting", count: 3 }), { text: "3 saved, live in a minute", label: "publish now", busy: false });
   assert.equal(view({ state: "updating" }).busy, true);
   assert.equal(view({ state: "live" }).busy, true);
   assert.deepEqual(view({ state: "failed" }), { text: "didn't go through", label: "try again", busy: false });
@@ -58,8 +57,8 @@ test("publishing adds an empty commit on main with the signed in token", async (
   const realFetch = globalThis.fetch;
   globalThis.localStorage = { getItem: () => JSON.stringify({ token: "gho_x" }) };
   globalThis.fetch = async (url, init = {}) => {
-    calls.push({ url: String(url).replace("https://api.github.com/repos/cinappses/cinappses", ""), method: init.method ?? "GET", body: init.body && JSON.parse(init.body), auth: init.headers.authorization });
-    const replies = { "/git/ref/heads/main": { object: { sha: "head" } }, "/git/commits/head": { tree: { sha: "tree" } }, "/git/commits": { sha: "new" } };
+    calls.push({ url: String(url).replace("https://api.github.com", ""), method: init.method ?? "GET", body: init.body && JSON.parse(init.body), auth: init.headers.authorization });
+    const replies = { "/repos/cinappses/cinappses/git/ref/heads/main": { object: { sha: "head" } }, "/graphql": { data: {} } };
     return Response.json(replies[calls.at(-1).url] ?? {});
   };
   t.after(() => {
@@ -68,10 +67,25 @@ test("publishing adds an empty commit on main with the signed in token", async (
   });
 
   await publish();
-  assert.deepEqual(calls.map((c) => `${c.method} ${c.url}`), ["GET /git/ref/heads/main", "GET /git/commits/head", "POST /git/commits", "PATCH /git/refs/heads/main"]);
-  assert.deepEqual(calls[2].body, { message: "chore: publish changes", tree: "tree", parents: ["head"] });
-  assert.deepEqual(calls[3].body, { sha: "new" });
+  assert.deepEqual(calls.map((c) => `${c.method} ${c.url}`), ["GET /repos/cinappses/cinappses/git/ref/heads/main", "POST /graphql"]);
+  assert.deepEqual(calls[1].body.variables.input, {
+    branch: { repositoryNameWithOwner: "cinappses/cinappses", branchName: "main" },
+    message: { headline: "chore: publish changes" },
+    expectedHeadOid: "head",
+    fileChanges: {},
+  });
   assert.ok(calls.every((c) => c.auth === "token gho_x"));
+});
+
+test("a refused commit surfaces as an error even though github answers 200", async (t) => {
+  const realFetch = globalThis.fetch;
+  globalThis.localStorage = { getItem: () => null };
+  globalThis.fetch = async (url) => Response.json(String(url).endsWith("/graphql") ? { errors: [{ message: "protected branch" }] } : { object: { sha: "head" } });
+  t.after(() => {
+    globalThis.fetch = realFetch;
+    delete globalThis.localStorage;
+  });
+  await assert.rejects(publish(), /protected branch/);
 });
 
 test("a rejected push surfaces as an error", async (t) => {
@@ -88,7 +102,7 @@ test("a rejected push surfaces as an error", async (t) => {
 test("a slow refresh does not mark a publish in progress as failed", async (t) => {
   const made = [];
   const el = () => {
-    const e = { style: {}, isConnected: false, append() {}, before(box) { box.isConnected = true; }, setAttribute() {}, querySelector: () => null };
+    const e = { style: {}, isConnected: false, append() {}, after() {}, before(button) { button.isConnected = true; }, setAttribute() {}, closest: () => null, querySelector: () => null };
     made.push(e);
     return e;
   };
@@ -123,5 +137,5 @@ test("a slow refresh does not mark a publish in progress as failed", async (t) =
   await flush();
   pending.shift()(waiting());
   await flush();
-  assert.equal(made[2].textContent, "updating the site...");
+  assert.equal(made[3].textContent, "updating the site...");
 });

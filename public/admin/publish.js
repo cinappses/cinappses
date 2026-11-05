@@ -1,4 +1,5 @@
-const repo = "https://api.github.com/repos/cinappses/cinappses";
+const api = "https://api.github.com";
+const repo = `${api}/repos/cinappses/cinappses`;
 const patience = 10 * 60 * 1000;
 const quiet = 60 * 1000;
 const skipped = (c) => c.commit.message.includes("[skip ci]");
@@ -15,14 +16,12 @@ export const status = ({ commits, now }) => {
 export const settle = (current, tried) =>
   current.state === "waiting" && current.head === tried ? { state: "failed", head: tried } : current;
 
-const plural = (n) => `${n} change${n === 1 ? "" : "s"}`;
-
 export const view = ({ state, count }) =>
   ({
-    unknown: { text: "", label: "put changes on the site", busy: false },
-    waiting: { text: `${count} saved, going live in a minute`, label: `put ${plural(count)} on the site`, busy: false },
-    updating: { text: "updating the site...", label: "updating...", busy: true },
-    live: { text: "site is up to date", label: "put changes on the site", busy: true },
+    unknown: { text: "", label: "publish", busy: false },
+    waiting: { text: `${count} saved, live in a minute`, label: "publish now", busy: false },
+    updating: { text: "updating the site...", label: "publishing...", busy: true },
+    live: { text: "site is up to date", label: "published", busy: true },
     failed: { text: "didn't go through", label: "try again", busy: false },
   })[state];
 
@@ -35,7 +34,7 @@ const token = () => {
 };
 
 const github = async (path, init = {}) => {
-  const res = await fetch(repo + path, {
+  const res = await fetch(path.startsWith("/graphql") ? api + path : repo + path, {
     ...init,
     cache: "no-store",
     headers: { authorization: `token ${token()}`, accept: "application/vnd.github+json" },
@@ -52,23 +51,29 @@ const fetchCommits = async () => {
 
 export const publish = async () => {
   const { object } = await github("/git/ref/heads/main");
-  const { tree } = await github(`/git/commits/${object.sha}`);
-  const body = JSON.stringify({ message: "chore: publish changes", tree: tree.sha, parents: [object.sha] });
-  const made = await github("/git/commits", { method: "POST", body });
-  await github("/git/refs/heads/main", { method: "PATCH", body: JSON.stringify({ sha: made.sha }) });
+  const input = {
+    branch: { repositoryNameWithOwner: "cinappses/cinappses", branchName: "main" },
+    message: { headline: "chore: publish changes" },
+    expectedHeadOid: object.sha,
+    fileChanges: {},
+  };
+  const query = "mutation($input: CreateCommitOnBranchInput!) { createCommitOnBranch(input: $input) { commit { oid } } }";
+  const { errors } = await github("/graphql", { method: "POST", body: JSON.stringify({ query, variables: { input } }) });
+  if (errors) throw new Error(errors[0].message);
 };
 
 export const start = () => {
-  const box = document.createElement("span");
-  box.style.cssText = "display: inline-flex; align-items: center; gap: 12px;";
-  const text = document.createElement("span");
-  text.style.whiteSpace = "nowrap";
+  const note = document.createElement("span");
+  note.className = "publish-bar";
+  note.style.cssText = "align-items: center; gap: 12px; white-space: nowrap;";
   const link = document.createElement("a");
   link.href = "/admin/guestbook";
-  link.textContent = "guestbook";
-  link.style.color = "inherit";
+  link.title = "guestbook";
+  link.setAttribute("aria-label", "guestbook");
+  const text = document.createElement("span");
+  text.className = "publish-note";
+  note.append(link, text);
   const button = document.createElement("button");
-  box.append(link, text, button);
   let current = { state: "unknown" };
   let timer;
   let tried;
@@ -110,15 +115,22 @@ export const start = () => {
   button.onclick = go;
 
   const place = () => {
+    if (!token()) return;
+    const assets = document.querySelector('button[aria-label="Assets"]');
+    if (assets && !note.isConnected) {
+      link.className = assets.className.replace("select-button", "");
+      link.innerHTML = `<span class="${assets.querySelector(".icon")?.className}" aria-hidden="true">menu_book</span>`;
+      (assets.closest(".wrapper") ?? assets).after(note);
+    }
     const native = document.querySelector('button[data-label="Publish Changes"]');
-    if (!native || box.isConnected || !token()) return;
+    if (!native || button.isConnected) return;
     button.className = native.className.replace("secondary", "primary");
     button.innerHTML = native.innerHTML;
     native.style.display = "none";
-    native.before(box);
+    native.before(button);
     refresh();
   };
 
   new MutationObserver(place).observe(document.body, { childList: true, subtree: true });
-  addEventListener("focus", () => box.isConnected && current.state !== "updating" && refresh());
+  addEventListener("focus", () => button.isConnected && current.state !== "updating" && refresh());
 };
