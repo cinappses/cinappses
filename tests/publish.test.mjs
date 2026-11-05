@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { publish, status, view } from "../public/admin/publish.js";
+import { publish, settle, status, view } from "../public/admin/publish.js";
 
 const now = Date.parse("2026-11-04T12:00:00Z");
 const commit = (message, minutesAgo = 1) => ({
@@ -14,12 +14,25 @@ test("nothing after the live commit means the site is up to date", () => {
 
 test("cms saves after the live commit are counted as waiting", () => {
   const commits = [commit("[skip ci] Update Art “train”"), commit("[skip ci] Update Art “rain”")];
-  assert.deepEqual(status({ commits, now }), { state: "waiting", count: 2 });
+  assert.deepEqual(status({ commits, now }), { state: "waiting", count: 2, head: "[skip ci] Update Art “rain”", ready: true });
 });
 
 test("a newer save still waits even while an earlier build runs", () => {
   const commits = [commit("chore: publish changes"), commit("[skip ci] Update Files “tags”")];
-  assert.deepEqual(status({ commits, now }), { state: "waiting", count: 1 });
+  assert.equal(status({ commits, now }).count, 1);
+});
+
+test("saves are ready to go live once a minute passes without another", () => {
+  assert.equal(status({ commits: [commit("[skip ci] a", 0.5)], now }).ready, false);
+  assert.equal(status({ commits: [commit("[skip ci] a", 1)], now }).ready, true);
+});
+
+test("a save that was already tried shows as failed instead of trying again", () => {
+  const waiting = { state: "waiting", count: 1, head: "a", ready: true };
+  assert.deepEqual(settle(waiting, "a"), { state: "failed", head: "a" });
+  assert.equal(settle(waiting, "b"), waiting);
+  assert.equal(settle(waiting, undefined), waiting);
+  assert.deepEqual(settle({ state: "updating" }, "a"), { state: "updating" });
 });
 
 test("a building commit is updating until it is too old, then failed", () => {
@@ -33,7 +46,7 @@ test("an unknown live commit leaves the button usable", () => {
 });
 
 test("the button says what it will do", () => {
-  assert.deepEqual(view({ state: "waiting", count: 3 }), { text: "3 saved, not live yet", label: "put 3 changes on the site", busy: false });
+  assert.deepEqual(view({ state: "waiting", count: 3 }), { text: "3 saved, going live in a minute", label: "put 3 changes on the site", busy: false });
   assert.equal(view({ state: "waiting", count: 1 }).label, "put 1 change on the site");
   assert.equal(view({ state: "updating" }).busy, true);
   assert.equal(view({ state: "live" }).busy, true);
