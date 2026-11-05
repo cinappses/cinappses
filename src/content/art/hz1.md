@@ -1,7 +1,7 @@
 ---
 image: img/HZ1.png
 title: Hadal Zone 1
-date: 2024-05-21
+date: 2024-05-29
 caption: |-
   Page one of Hadal Zone, Luci's senior thesis comic. The narrator, a blonde, inexpressive woman named Mae, recounts a childhood memory of her mother taking her picture. Mae is not smiling.
   TEXT. 
