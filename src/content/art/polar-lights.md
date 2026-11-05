@@ -6,4 +6,5 @@ caption: A painting of two Dall Sheep pausing their upward trek to gaze at the A
 tags:
   - illustration
   - background
+  - original
 ---
