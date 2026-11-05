@@ -10,6 +10,6 @@ Special thanks to the incomparably lovely [rosematcha](https://rosematcha.com/),
 
 <div class="photos" data-layout="center" data-size="small">
 
-![A drawing of Luci\'s sona\, Cin\, holding an apple slice shaped like a little rabbit\.](</uploads/cin_hand_apple.png>)
+![](</uploads/cin_hand_apple-1.png>)
 
 </div>
