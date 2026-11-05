@@ -1,7 +1,7 @@
 ---
 image: img/HadalZonePage4Final.png
 title: Hadal Zone 4
-date: 2024-05-29
+date: 2024-05-26
 caption: |-
   Page four of Hadal Zone, Luci's senior thesis comic. An injured woman, Cadena, lies on her back in a hospital bed, staring up at Mae and Orion, who have come to visit her.
   TEXT;
