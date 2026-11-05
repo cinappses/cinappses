@@ -84,3 +84,44 @@ test("a rejected push surfaces as an error", async (t) => {
   });
   await assert.rejects(publish());
 });
+
+test("a slow refresh does not mark a publish in progress as failed", async (t) => {
+  const made = [];
+  const el = () => {
+    const e = { style: {}, isConnected: false, append() {}, before(box) { box.isConnected = true; }, setAttribute() {}, querySelector: () => null };
+    made.push(e);
+    return e;
+  };
+  const native = { ...el(), className: "secondary", innerHTML: "" };
+  let observe;
+  let focus;
+  const pending = [];
+  const later = () => new Promise((resolve) => pending.push(resolve));
+  const real = { fetch: globalThis.fetch, setTimeout: globalThis.setTimeout };
+  Object.assign(globalThis, {
+    document: { createElement: el, querySelector: () => native, body: {} },
+    MutationObserver: class { constructor(f) { observe = f; } observe() {} },
+    addEventListener: (_, f) => { focus = f; },
+    localStorage: { getItem: () => JSON.stringify({ token: "gho_x" }) },
+    setTimeout: () => 0,
+    fetch: async (url) => (String(url) === "/version.txt" ? new Response("live") : later()),
+  });
+  t.after(() => {
+    Object.assign(globalThis, real);
+    for (const k of ["document", "MutationObserver", "addEventListener", "localStorage"]) delete globalThis[k];
+  });
+  const { start } = await import("../public/admin/publish.js?overlap");
+  const flush = () => new Promise((r) => setImmediate(r));
+  const waiting = () => Response.json({ commits: [commit("[skip ci] a", 5)] });
+
+  start();
+  observe();
+  await flush();
+  focus();
+  await flush();
+  pending.shift()(waiting());
+  await flush();
+  pending.shift()(waiting());
+  await flush();
+  assert.equal(made[2].textContent, "updating the site...");
+});

@@ -72,6 +72,7 @@ export const start = () => {
   let current = { state: "unknown" };
   let timer;
   let tried;
+  let run = 0;
 
   const render = () => {
     const v = view(current);
@@ -84,6 +85,7 @@ export const start = () => {
 
   const go = async () => {
     clearTimeout(timer);
+    run += 1;
     tried = current.head;
     current = { state: "updating" };
     render();
@@ -96,7 +98,9 @@ export const start = () => {
 
   const refresh = async () => {
     clearTimeout(timer);
+    const mine = ++run;
     const next = await fetchCommits().then((commits) => status({ commits, now: Date.now() }), () => current);
+    if (mine !== run) return;
     current = settle(next, tried);
     if (current.ready) return go();
     render();
