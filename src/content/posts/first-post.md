@@ -24,6 +24,8 @@ Much.
 
 </details>
 
+***
+
 It's a little funny -- almost exactly a year ago, I was writing up my first blogpost on my old strawpage. I got a fly in my ear about wanting a space on the internet that was really mine, and so I spent about a week and a half fussily putting together a facsimile of old internet sensibilities that I wasn't really around for. I still think it's a darling little site, but alas... I must retire it.
 
 So, get this. I've had two websites all this time. My neocities, which I hastily threw together because my current employers asked me for a portfolio I didn't have (thank you guys for taking a chance on me!!!), and my strawpage, which I intended to be more of a blog/hub for all my various ventures. And I was spending money on both of them despite using neither of them!! Aaaaaagh!!
