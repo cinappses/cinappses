@@ -63,8 +63,12 @@ export const start = () => {
   box.style.cssText = "display: inline-flex; align-items: center; gap: 12px;";
   const text = document.createElement("span");
   text.style.whiteSpace = "nowrap";
+  const link = document.createElement("a");
+  link.href = "/admin/guestbook";
+  link.textContent = "guestbook";
+  link.style.color = "inherit";
   const button = document.createElement("button");
-  box.append(text, button);
+  box.append(link, text, button);
   let current = { state: "unknown" };
   let timer;
   let tried;
