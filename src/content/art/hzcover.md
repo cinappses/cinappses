@@ -7,4 +7,5 @@ tags:
   - comic
   - background
   - illustration
+  - original
 ---
