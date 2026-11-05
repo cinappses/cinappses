@@ -1,7 +1,7 @@
 ---
 image: img/HadalZonePage6Final.png
 title: Hadal Zone 6
-date: 2024-05-29
+date: 2024-05-26
 caption: |-
   Page six of Hadal Zone, Luci's senior thesis comic. As Cadena's condition worsens, Mae rushes out of the room to go get her some medicine. Orion cheerfully remains in his seat.
   TEXT;
