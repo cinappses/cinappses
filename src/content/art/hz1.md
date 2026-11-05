@@ -9,4 +9,5 @@ caption: |-
   MAE: "Always remember to smile. A proper smile is your greatest weapon."
 tags:
   - comic
+  - original
 ---
