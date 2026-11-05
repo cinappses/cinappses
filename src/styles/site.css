@@ -105,7 +105,8 @@ nav li a:is(:hover, :focus-visible) { color: var(--accent-dark); translate: 4px;
 nav li a:active { scale: 1.06 .92; transition-duration: .08s; }
 nav p { font-size: .85em; margin: 8px 0; }
 .socials { display: flex; gap: 8px; }
-.socials a { flex: 1; text-align: center; border: 2px solid var(--ink); background: var(--paper); font-size: .8em; text-decoration: none; }
+.socials a { flex: 1; display: grid; place-items: center; padding: 3px 0; border: 2px solid var(--ink); background: var(--paper); }
+.socials svg { width: 20px; height: 20px; fill: currentColor; }
 .socials a { transition: background .2s; }
 .socials a:is(:hover, :focus-visible) { background: var(--accent); color: var(--ink); }
 .contact { padding: 2px 12px 12px; border: 2px solid var(--ink); background: var(--paper); box-shadow: 4px 4px 0 var(--ink); rotate: .6deg; }
@@ -142,7 +143,7 @@ dialog .artwork img:not([data-ready]) { visibility: hidden; }
 dialog figcaption { border-top: 2px solid var(--ink); margin-top: 12px; padding-top: 8px; }
 dialog summary { cursor: pointer; }
 
-.pen { position: relative; height: 440px; border: 3px dashed var(--ink); border-radius: 16px; background: #f7e3b5; overflow: hidden; touch-action: pan-y; }
+.pen { position: relative; height: 440px; border: 3px dashed var(--ink); border-radius: 16px; background: var(--accent); overflow: hidden; touch-action: pan-y; }
 .pen button { position: absolute; left: 0; top: 0; width: 56px; padding: 0; border: 0; background: none; cursor: grab; user-select: none; touch-action: none; -webkit-touch-callout: none; }
 .pen button:active { cursor: grabbing; }
 .pen button:is(:hover, :focus-visible) { z-index: 1; }
