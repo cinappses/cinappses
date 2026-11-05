@@ -1,7 +1,7 @@
 ---
 image: img/HadalZonePage5Final.png
 title: Hadal Zone 5
-date: 2024-05-29
+date: 2024-05-25
 caption: |-
   Page five of Hadal Zone, Luci's senior thesis comic. Mae, Cadena and Orion continue to argue in the hospital room while Mae reads Cadena's chart.
   TEXT;
