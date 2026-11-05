@@ -6,4 +6,5 @@ caption: A painting of an older design of Mikoto--a mortician with pale hair and
 tags:
   - illustration
   - background
+  - original
 ---
