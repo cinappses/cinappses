@@ -1,22 +1,26 @@
 const repo = "https://api.github.com/repos/cinappses/cinappses";
 const patience = 10 * 60 * 1000;
+const quiet = 60 * 1000;
 const skipped = (c) => c.commit.message.includes("[skip ci]");
 
 export const status = ({ commits, now }) => {
   if (!commits) return { state: "unknown" };
   if (!commits.length) return { state: "live" };
   const head = commits.at(-1);
-  if (skipped(head)) return { state: "waiting", count: commits.filter(skipped).length };
   const age = now - Date.parse(head.commit.committer.date);
+  if (skipped(head)) return { state: "waiting", count: commits.filter(skipped).length, head: head.sha, ready: age >= quiet };
   return { state: age < patience ? "updating" : "failed" };
 };
+
+export const settle = (current, tried) =>
+  current.state === "waiting" && current.head === tried ? { state: "failed", head: tried } : current;
 
 const plural = (n) => `${n} change${n === 1 ? "" : "s"}`;
 
 export const view = ({ state, count }) =>
   ({
     unknown: { text: "", label: "put changes on the site", busy: false },
-    waiting: { text: `${count} saved, not live yet`, label: `put ${plural(count)} on the site`, busy: false },
+    waiting: { text: `${count} saved, going live in a minute`, label: `put ${plural(count)} on the site`, busy: false },
     updating: { text: "updating the site...", label: "updating...", busy: true },
     live: { text: "site is up to date", label: "put changes on the site", busy: true },
     failed: { text: "didn't go through", label: "try again", busy: false },
@@ -54,16 +58,16 @@ export const publish = async () => {
   await github("/git/refs/heads/main", { method: "PATCH", body: JSON.stringify({ sha: made.sha }) });
 };
 
-
 export const start = () => {
   const box = document.createElement("span");
   box.style.cssText = "display: inline-flex; align-items: center; gap: 12px;";
   const text = document.createElement("span");
-  text.style.color = "hsl(18 12% 40%)";
+  text.style.whiteSpace = "nowrap";
   const button = document.createElement("button");
   box.append(text, button);
   let current = { state: "unknown" };
   let timer;
+  let tried;
 
   const render = () => {
     const v = view(current);
@@ -74,25 +78,28 @@ export const start = () => {
     button.setAttribute("aria-disabled", String(v.busy));
   };
 
-  const refresh = async () => {
+  const go = async () => {
     clearTimeout(timer);
-    current = await fetchCommits().then((commits) => status({ commits, now: Date.now() }), () => current);
-    render();
-    timer = setTimeout(refresh, current.state === "updating" ? 15_000 : 60_000);
-  };
-
-  button.onclick = async () => {
-    clearTimeout(timer);
+    tried = current.head;
     current = { state: "updating" };
     render();
-    try {
-      await publish();
-      timer = setTimeout(refresh, 5_000);
-    } catch {
-      current = { state: "failed" };
+    await publish().catch(() => {
+      current = { state: "failed", head: tried };
       render();
-    }
+    });
+    timer = setTimeout(refresh, 5_000);
   };
+
+  const refresh = async () => {
+    clearTimeout(timer);
+    const next = await fetchCommits().then((commits) => status({ commits, now: Date.now() }), () => current);
+    current = settle(next, tried);
+    if (current.ready) return go();
+    render();
+    timer = setTimeout(refresh, current.state === "live" ? 60_000 : 15_000);
+  };
+
+  button.onclick = go;
 
   const place = () => {
     const native = document.querySelector('button[data-label="Publish Changes"]');
@@ -105,5 +112,5 @@ export const start = () => {
   };
 
   new MutationObserver(place).observe(document.body, { childList: true, subtree: true });
-  addEventListener("focus", () => box.isConnected && refresh());
+  addEventListener("focus", () => box.isConnected && current.state !== "updating" && refresh());
 };
