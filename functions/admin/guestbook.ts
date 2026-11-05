@@ -32,7 +32,7 @@ async function canEdit(request: Request) {
 export const onRequestGet = async ({ env }: Context) => {
   const entries = await listEntries(env.DB);
   const items = entries.map((e) => `<li>${entryHtml(e)}<form><button name="id" value="${e.id}">delete</button></form></li>`);
-  const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>guestbook | cinappses</title><style>${style}</style><h1>guestbook</h1><ul>${items.join("")}</ul><script>${script}</script>`;
+  const html = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>guestbook | cinappses</title><style>${style}</style><p><a href="/admin/">back to the cms</a></p><h1>guestbook</h1><ul>${items.join("")}</ul><script>${script}</script>`;
   return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
 };
 
