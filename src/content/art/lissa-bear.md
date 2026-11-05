@@ -6,5 +6,5 @@ caption: A chibi doodle of Lissa, a short, alt magical girl, with bear ears and 
 tags:
   - illustration
   - original
-  - recatalyze
+  - recatalyzed
 ---
