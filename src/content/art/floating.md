@@ -6,4 +6,5 @@ caption: A chibi-style doodle of Castorice from Honkai Star Rail, peacefully flo
 tags:
   - illustration
   - background
+  - fanart
 ---
