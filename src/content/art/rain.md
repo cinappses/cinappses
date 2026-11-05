@@ -6,4 +6,5 @@ caption: 'A painting of Kafka from Honkai: Star Rail, a sharply dressed woman wi
 tags:
   - illustration
   - background
+  - fanart
 ---
