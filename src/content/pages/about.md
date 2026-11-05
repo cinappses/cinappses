@@ -50,3 +50,18 @@ Let's be friends and draw together!
 ![](</uploads/I_love_comments.gif>)
 
 </div>
+
+<div class="photos" data-layout="right" data-size="medium">
+
+![](</uploads/%E6%9E%97%E6%AA%8E%E3%83%81%E3%83%A3%E3%83%B3_m%20%2813%29.gif>)
+
+</div>
+
+
+<div class="photos" data-layout="left" data-size="medium">
+
+![](</uploads/%E6%9E%97%E6%AA%8E%E3%83%81%E3%83%A3%E3%83%B3_m%20%2813%29.gif>)
+
+</div>
+
+[Also here's a regularly-updated playlist of songs I like. ](https://music.youtube.com/playlist?list=PLcg1Bb-h2Ig_e4o4jYc9OB2c0vJOdvc_x&si=zaMSFjJnp3qWIZZo)
