@@ -1,7 +1,7 @@
 ---
 image: img/HadalZonePage3Final.png
 title: Hadal Zone 3
-date: 2024-05-29
+date: 2024-05-27
 caption: |-
   Page three of Hadal Zone, Luci's senior thesis comic. Inside an underwater structure, a group of three people are bathed in red light as they stare, in horror, at a row of monitors reading 'rescue in progress'. An adult Mae is amongst the group. As a fight breaks out amongst her peers, a pager on Mae's hip beeps.
   TEXT;
