@@ -3,8 +3,8 @@ import { getCollection, render } from "astro:content";
 import { ClientRouter } from "astro:transitions";
 import "../styles/site.css";
 
-const { title, description = "Hi, I’m Luci! I’m a mixed g’wichin comic artist and illustrator. I love to draw people eating food and being friends!", noindex = false } = Astro.props;
-const name = title ? `${title} | cinappses` : "cinappses";
+const { title, description = "Art by Luci Lofthouse, a comic artist and illustrator: character illustrations, background paintings, commissions, and fan art.", type = "website", published, schema, noindex = false } = Astro.props;
+const name = title ? `${title} | cinappses` : "cinappses | art by Luci Lofthouse";
 const url = new URL(Astro.url.pathname.replace(/\.html$/, "").replace(/\/index$/, "/"), Astro.site);
 const [latest] = (await getCollection("status")).sort((a, b) => +b.data.date - +a.data.date);
 const { Content: Status } = await render(latest);
@@ -24,11 +24,13 @@ const { Content: Status } = await render(latest);
 {noindex ? <meta name="robots" content="noindex"> : <link rel="canonical" href={url}>}
 <meta name="theme-color" content="#f1a164">
 <meta property="og:site_name" content="cinappses">
-<meta property="og:type" content="website">
+<meta property="og:type" content={type}>
+{published && <meta property="article:published_time" content={published.toISOString()}>}
 <meta property="og:title" content={name}>
 <meta property="og:description" content={description}>
 <meta property="og:url" content={url}>
 <link rel="sitemap" href="/sitemap-index.xml">
+{schema && <script type="application/ld+json" is:inline set:html={JSON.stringify({ "@context": "https://schema.org", ...schema })} />}
 </head>
 <body>
 <a class="skip" href="#content">skip to content</a>
