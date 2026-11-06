@@ -14,7 +14,7 @@ test("applings fall back to a site asset when their image is absent or cleared",
   t.after(() => rm(root, { recursive: true, force: true }));
 
   for (const path of ["src", "public", "package.json", "astro.config.mjs", "tsconfig.json"]) {
-    await cp(join(project, path), join(root, path), { recursive: true });
+    await cp(join(project, path), join(root, path), { recursive: true, filter: (from) => !from.includes("/src/content/art/") });
   }
 
   const applings = join(root, "src/content/applings");

@@ -14,7 +14,7 @@ test("gallery builds responsive images with inline placeholders", async (t) => {
   const root = await mkdtemp(join(project, "node_modules/.gallery-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   for (const path of ["src", "public", "package.json", "astro.config.mjs", "tsconfig.json"]) {
-    await cp(join(project, path), join(root, path), { recursive: true });
+    await cp(join(project, path), join(root, path), { recursive: true, filter: (from) => !from.includes("/src/content/art/") });
   }
   const art = join(root, "src/content/art");
   await rm(art, { recursive: true });

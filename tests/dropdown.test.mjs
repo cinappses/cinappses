@@ -34,7 +34,7 @@ test("built pages render dropdown text as markdown", async (t) => {
   const root = await mkdtemp(join(project, "node_modules/.dropdown-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   for (const path of ["src", "public", "package.json", "astro.config.mjs", "tsconfig.json"]) {
-    await cp(join(project, path), join(root, path), { recursive: true });
+    await cp(join(project, path), join(root, path), { recursive: true, filter: (from) => !from.includes("/src/content/art/") });
   }
 
   const markdown = dropdown.toBlock({ title: "more & more", body: "MOVIES: **Clue**\n\nGAMES: PMD2" });
