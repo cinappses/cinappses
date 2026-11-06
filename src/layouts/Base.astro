@@ -39,7 +39,18 @@ const { Content: Status } = await render(latest);
 </head>
 <body>
 <a class="skip" href="#content">skip to content</a>
-<header transition:persist><h1><a href="/"><picture><source srcset="/logo.webp" type="image/webp"><img src="/logo.jpg" alt="cinappses" width="1600" height="781"></picture></a></h1></header>
+<header transition:persist><h1><a href="/"><picture><source srcset="/logo.webp" type="image/webp"><img src="/logo.jpg" alt="cinappses" width="1600" height="781"></picture></a></h1>
+<button class="burger" type="button" aria-expanded="false" aria-controls="nav" aria-label="menu" hidden><i></i><i></i><i></i></button>
+<script>
+const burger = document.querySelector<HTMLButtonElement>(".burger")!;
+const toggle = (open: boolean) => burger.setAttribute("aria-expanded", String(open));
+burger.hidden = false;
+burger.addEventListener("click", () => toggle(burger.getAttribute("aria-expanded") !== "true"));
+document.getElementById("nav")?.addEventListener("click", (e) => { if ((e.target as Element).closest("a")) toggle(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") toggle(false); });
+document.addEventListener("astro:after-swap", () => toggle(false));
+</script>
+</header>
 <div class="site">
 <aside class="doll" transition:persist>
 <div class="status">
@@ -54,7 +65,7 @@ document.querySelector(".doll > img")?.addEventListener("contextmenu", (e) => {
 </script>
 </aside>
 <main id="content" tabindex="0" transition:animate="none"><slot /></main>
-<nav transition:persist>
+<nav id="nav" transition:persist>
 <ul>
 <li><a href="/">Home</a></li>
 <li><a href="/about">About</a></li>
