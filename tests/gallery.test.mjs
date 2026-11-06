@@ -1,43 +1,12 @@
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
 import sharp from "sharp";
 
-const run = promisify(execFile);
-
-test("gallery builds responsive images with inline placeholders", async (t) => {
-  const project = fileURLToPath(new URL("../", import.meta.url));
-  const root = await mkdtemp(join(project, "node_modules/.gallery-"));
-  t.after(() => rm(root, { recursive: true, force: true }));
-  for (const path of ["src", "public", "package.json", "astro.config.mjs", "tsconfig.json"]) {
-    await cp(join(project, path), join(root, path), { recursive: true, filter: (from) => !from.includes("/src/content/art/") });
-  }
-  const art = join(root, "src/content/art");
-  await rm(art, { recursive: true });
-  await mkdir(join(art, "img"), { recursive: true });
-
-  const originals = new Map();
-  for (const [name, width, height, format, tags] of [
-    ["portrait", 1400, 2800, "png", "[comic]"],
-    ["landscape", 2800, 1400, "jpeg", "[sketch, illustration]"],
-    ["small", 200, 300, "png", "[]"],
-  ]) {
-    const original = await sharp({ create: { width, height, channels: 4, background: "#f1a164" } })
-      .toFormat(format).toBuffer();
-    originals.set(name, { width, height });
-    await writeFile(join(art, `img/${name}.${format}`), original);
-    await writeFile(join(art, `${name}.md`), `---\ntitle: ${name}\nimage: img/${name}.${format}\ndate: 2026-10-18\ntags: ${tags}\n---\n`);
-  }
-  await writeFile(join(root, "src/data/tags.json"), JSON.stringify({ tags: ["illustration", "background", "comic"] }));
-  await run(process.execPath, [join(project, "node_modules/astro/bin/astro.mjs"), "build"], {
-    cwd: root,
-    timeout: 90_000,
-  });
-
+test("gallery builds responsive images with inline placeholders", async () => {
+  const root = process.env.TEST_FIXTURE;
+  const originals = new Map([["portrait", { width: 1400, height: 2800 }], ["landscape", { width: 2800, height: 1400 }], ["small", { width: 200, height: 300 }]]);
   const html = await readFile(join(root, "dist/gallery.html"), "utf8");
   const filters = [...html.matchAll(/data-tag="([^"]*)"/g)].map((m) => m[1]);
   assert.deepEqual(filters, ["", "illustration", "comic"]);
