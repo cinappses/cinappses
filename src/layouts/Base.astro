@@ -3,7 +3,9 @@ import { getCollection, render } from "astro:content";
 import { ClientRouter } from "astro:transitions";
 import "../styles/site.css";
 
-const { title } = Astro.props;
+const { title, description = "Hi, I’m Luci! I’m a mixed g’wichin comic artist and illustrator. I love to draw people eating food and being friends!", noindex = false } = Astro.props;
+const name = title ? `${title} | cinappses` : "cinappses";
+const url = new URL(Astro.url.pathname.replace(/\.html$/, "").replace(/\/index$/, "/"), Astro.site);
 const [latest] = (await getCollection("status")).sort((a, b) => +b.data.date - +a.data.date);
 const { Content: Status } = await render(latest);
 ---
@@ -17,7 +19,16 @@ const { Content: Status } = await render(latest);
 <link rel="stylesheet" href="/photos.css">
 <link rel="stylesheet" href="/prose.css">
 <ClientRouter />
-<title>{title ? `${title} | cinappses` : "cinappses"}</title>
+<title>{name}</title>
+<meta name="description" content={description}>
+{noindex ? <meta name="robots" content="noindex"> : <link rel="canonical" href={url}>}
+<meta name="theme-color" content="#f1a164">
+<meta property="og:site_name" content="cinappses">
+<meta property="og:type" content="website">
+<meta property="og:title" content={name}>
+<meta property="og:description" content={description}>
+<meta property="og:url" content={url}>
+<link rel="sitemap" href="/sitemap-index.xml">
 </head>
 <body>
 <a class="skip" href="#content">skip to content</a>
