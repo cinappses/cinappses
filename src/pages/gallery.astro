@@ -39,7 +39,7 @@ const schema = {
     const eager = art.indexOf(a) < 4;
     return (
     <button data-tags={a.data.tags.join(" ")} data-full={image.src} data-srcset={image.srcset} data-sizes={image.sizes} data-width={image.width} data-height={image.height} data-cap={a.data.caption ?? a.data.title} data-alt={a.data.alt ?? ""} data-placeholder={image.placeholder}>
-    <Image src={a.data.image} alt={a.data.alt ?? a.data.title} width={size} height={size} fit="cover" widths={widths} sizes={eager ? "(max-width: 900px) 240px, 180px" : "auto, (max-width: 900px) 240px, 180px"} loading={eager ? "eager" : "lazy"} />
+    <Image src={a.data.image} alt={a.data.alt ?? a.data.caption ?? a.data.title} width={size} height={size} fit="cover" widths={widths} sizes={eager ? "(max-width: 900px) 240px, 180px" : "auto, (max-width: 900px) 240px, 180px"} loading={eager ? "eager" : "lazy"} />
     </button>
     );
   })}

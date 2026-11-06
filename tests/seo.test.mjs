@@ -30,6 +30,7 @@ test("built pages carry link preview and search tags", async (t) => {
   const schema = JSON.parse(gallery.match(/<script type="application\/ld\+json">(.*?)<\/script>/)[1]);
   assert.equal(schema["@type"], "ImageGallery");
   assert.ok(schema.image.length > 0);
+  assert.ok(schema.image.some((image) => image.caption && gallery.includes(`alt="${image.caption}"`)));
   for (const image of schema.image) assert.match(image.contentUrl, /^https:\/\/cinappses.org\/_astro\//);
 
   const post = await readFile(join(out, "blog/first-post.html"), "utf8");
