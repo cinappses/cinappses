@@ -29,6 +29,11 @@ const { Content: Status } = await render(latest);
 <meta property="og:title" content={name}>
 <meta property="og:description" content={description}>
 <meta property="og:url" content={url}>
+<meta property="og:image" content={new URL("/og.png", Astro.site)}>
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The cinappses logo next to a drawing of Cin, Luci’s sona.">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="sitemap" href="/sitemap-index.xml">
 {schema && <script type="application/ld+json" is:inline set:html={JSON.stringify({ "@context": "https://schema.org", ...schema })} />}
 </head>
