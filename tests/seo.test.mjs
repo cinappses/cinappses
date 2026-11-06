@@ -20,7 +20,8 @@ test("built pages carry link preview and search tags", async (t) => {
 
   const home = await readFile(join(out, "index.html"), "utf8");
   assert.match(home, /<link rel="canonical" href="https:\/\/cinappses.org\/">/);
-  assert.doesNotMatch(home, /og:image/);
+  assert.match(home, /<meta property="og:image" content="https:\/\/cinappses.org\/og.png">/);
+  assert.match(home, /<meta name="twitter:card" content="summary_large_image">/);
 
   assert.match(home, /<title>cinappses \| art by Luci Lofthouse<\/title>/);
   assert.match(home, /"@type":"Person","name":"Luci Lofthouse"/);
