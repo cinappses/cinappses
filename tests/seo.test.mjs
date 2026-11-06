@@ -1,22 +1,11 @@
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
 import { excerpt } from "../src/lib/excerpt.ts";
 
-const run = promisify(execFile);
-
-test("built pages carry link preview and search tags", async (t) => {
-  const project = fileURLToPath(new URL("../", import.meta.url));
-  const out = await mkdtemp(join(project, "node_modules/.seo-"));
-  t.after(() => rm(out, { recursive: true, force: true }));
-  await run(process.execPath, [join(project, "node_modules/astro/bin/astro.mjs"), "build", "--outDir", out], {
-    cwd: project,
-    timeout: 120_000,
-  });
+test("built pages carry link preview and search tags", async () => {
+  const out = join(process.env.TEST_FIXTURE, "dist");
 
   const home = await readFile(join(out, "index.html"), "utf8");
   assert.match(home, /<link rel="canonical" href="https:\/\/cinappses.org\/">/);
@@ -33,7 +22,7 @@ test("built pages carry link preview and search tags", async (t) => {
   assert.ok(schema.image.some((image) => image.caption && gallery.includes(`alt="${image.caption}"`)));
   for (const image of schema.image) assert.match(image.contentUrl, /^https:\/\/cinappses.org\/_astro\//);
 
-  const post = await readFile(join(out, "blog/first-post.html"), "utf8");
+  const post = await readFile(join(out, "blog/dropdown.html"), "utf8");
   assert.match(post, /<meta property="og:type" content="article">/);
   assert.match(post, /<meta property="article:published_time" content="\d{4}-\d\d-\d\dT[^"]+">/);
 

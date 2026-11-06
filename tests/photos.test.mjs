@@ -1,14 +1,9 @@
 import assert from "node:assert/strict";
-import { execFile } from "node:child_process";
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { test } from "node:test";
-import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
-import sharp from "sharp";
 import { photo, photos } from "../public/admin/photos.js";
 
-const run = promisify(execFile);
 
 const parse = (markdown, component = photos) => component.fromBlock(markdown.match(component.pattern)).board;
 const block = (board, component = photos) => component.toBlock({ board });
@@ -49,32 +44,8 @@ test("photos block skips entries without an image", () => {
   assert.deepEqual(parse(markdown).photos, [{ image: "img/a.png", caption: "" }]);
 });
 
-test("built posts turn photos blocks into captioned figures", async (t) => {
-  const project = fileURLToPath(new URL("../", import.meta.url));
-  const root = await mkdtemp(join(project, "node_modules/.photos-"));
-  t.after(() => rm(root, { recursive: true, force: true }));
-  for (const path of ["src", "public", "package.json", "astro.config.mjs", "tsconfig.json"]) {
-    await cp(join(project, path), join(root, path), { recursive: true, filter: (from) => !from.includes("/src/content/art/") });
-  }
-
-  const posts = join(root, "src/content/posts");
-  await mkdir(join(posts, "img"), { recursive: true });
-  await mkdir(join(root, "public/uploads"), { recursive: true });
-  const image = (width, height) => sharp({ create: { width, height, channels: 3, background: "#9cc59a" } }).png();
-  await image(600, 300).jpeg().withMetadata({ orientation: 6 }).toFile(join(posts, "img/tall.jpg"));
-  await image(800, 400).toFile(join(root, "public/uploads/wide.png"));
-
-  const markdown = block({
-    layout: "row",
-    size: "large",
-    photos: [
-      { image: "img/tall.jpg", caption: "tall *one*" },
-      { image: "/uploads/wide.png", caption: "" },
-    ],
-  });
-  await writeFile(join(posts, "photos.md"), `---\ntitle: photos\ndate: 2026-11-03\n---\n![plain](img/tall.jpg)\n\n${markdown}\n`);
-
-  await run(process.execPath, [join(project, "node_modules/astro/bin/astro.mjs"), "build"], { cwd: root, timeout: 120_000 });
+test("built posts turn photos blocks into captioned figures", async () => {
+  const root = process.env.TEST_FIXTURE;
   const html = await readFile(join(root, "dist/blog/photos.html"), "utf8");
   const [, inside] = html.match(/<div class="photos" data-layout="row" data-size="large">([\s\S]*?)<\/div>/);
   const figures = [...inside.matchAll(/<figure style="--r: ([\d.]+)">([\s\S]*?)<\/figure>/g)];

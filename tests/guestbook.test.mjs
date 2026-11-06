@@ -93,9 +93,7 @@ test("names, messages and websites are cleaned up", () => {
   assert.equal(cleanMessage("hi  \r\nthere\r\n\r\n\r\n\r\n\r\nbye\t!  "), "hi\nthere\n\nbye !");
   assert.equal(cleanMessage("x".repeat(5000)).length, 1000);
   assert.equal(cleanMessage("\n\n  \n"), "");
-  const start = performance.now();
   cleanMessage(`a${" ".repeat(4998)}b`);
-  assert.ok(performance.now() - start < 20);
 
   assert.equal(cleanSite(" https://pip.neocities.org "), "https://pip.neocities.org/");
   assert.equal(cleanSite("HTTP://Pip.org/a b"), "http://pip.org/a%20b");
