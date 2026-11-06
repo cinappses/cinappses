@@ -3,3 +3,6 @@
 
 /admin/*
   Cache-Control: no-cache
+
+https://cinappses.pages.dev/*
+  X-Robots-Tag: noindex
