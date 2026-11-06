@@ -4,4 +4,4 @@ import Base from "../layouts/Base.astro";
 
 const { Content } = await render((await getEntry("pages", "home"))!);
 ---
-<Base><div class="home"><Content /></div></Base>
+<Base schema={{ "@type": "Person", name: "Luci Lofthouse", jobTitle: "comic artist and illustrator", url: Astro.site, sameAs: ["https://bsky.app/profile/cinappses.org", "https://cinappses.tumblr.com", "https://ko-fi.com/cinappses"] }}><div class="home"><Content /></div></Base>

@@ -10,8 +10,20 @@ const years = Map.groupBy(art, (a) => a.data.date.getUTCFullYear());
 const used = new Set(art.flatMap((a) => a.data.tags));
 const tags = tagList.tags.filter((t) => used.has(t));
 const images = new Map(await Promise.all(art.map(async (a) => [a.id, await galleryImage(a.data.image)] as const)));
+const schema = {
+  "@type": "ImageGallery",
+  creator: { "@type": "Person", name: "Luci Lofthouse" },
+  image: art.map((a) => ({
+    "@type": "ImageObject",
+    contentUrl: new URL(images.get(a.id)!.src, Astro.site),
+    name: a.data.title,
+    caption: a.data.caption,
+    datePublished: a.data.date.toISOString().slice(0, 10),
+    creator: { "@type": "Person", name: "Luci Lofthouse" },
+  })),
+};
 ---
-<Base title="gallery">
+<Base title="gallery" description="Illustrations, background paintings, comic art, and fan art by Luci Lofthouse, sorted by year." schema={schema}>
 <div class="tags">
 <button aria-pressed="true" data-tag="">all</button>
 {tags.map((t) => <button aria-pressed="false" data-tag={t}>{t}</button>)}
