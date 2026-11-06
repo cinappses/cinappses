@@ -54,7 +54,7 @@ test("built posts turn photos blocks into captioned figures", async (t) => {
   const root = await mkdtemp(join(project, "node_modules/.photos-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   for (const path of ["src", "public", "package.json", "astro.config.mjs", "tsconfig.json"]) {
-    await cp(join(project, path), join(root, path), { recursive: true });
+    await cp(join(project, path), join(root, path), { recursive: true, filter: (from) => !from.includes("/src/content/art/") });
   }
 
   const posts = join(root, "src/content/posts");
