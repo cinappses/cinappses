@@ -12,7 +12,7 @@ Hi, I’m **Luci**! You can also call me Lyon (pronounced Leon), or Cin. I’m a
 
 When I'm not drawing or looking at other people's drawings, I'm playing video games, practicing guitar, roller skating, and being a TRIVIA FIEND. Not all at once. (Sometimes all at once.)
 
-Stuff I like: Cooking, gardening, driving (traffic nonwithstanding), comics/manga, rpgs, magical girls, chickens and cows, etymology and other such trivia, those chalky grocery store sugar cookies 
+Stuff I like: Cooking, gardening, driving (traffic notwithstanding), comics/manga, rpgs, magical girls, chickens and cows, etymology and other such trivia, those chalky grocery store sugar cookies 
 
 <details>
 <summary>Here's a bunch more stuff I like!</summary>
