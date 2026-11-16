@@ -12,7 +12,7 @@ const applings = await getCollection("applings");
 <h2>friends</h2>
 <div class="pen">
 {applings.map((c) => (
-  <button type="button" data-link={c.data.link} data-name={c.data.name} draggable="false">
+  <button type="button" data-link={c.data.link} data-name={c.data.name} draggable="false" aria-keyshortcuts="ArrowUp ArrowDown ArrowLeft ArrowRight">
   <Image src={c.data.image ?? placeholder} alt={c.data.name} width={56} draggable="false" />
   </button>
 ))}
@@ -21,16 +21,18 @@ const applings = await getCollection("applings");
 <div aria-live="polite"><p class="recent" hidden>selected appling: <img alt="" width="24" height="24"> <b></b><span>, <a></a></span></p></div>
 </Base>
 <script>
-const FRICTION = 0.97;
-const BOUNCE = 0.6;
-const WALL_BOUNCE = 0.85;
+const CALM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const FRICTION = CALM ? 0.6 : 0.97;
+const BOUNCE = CALM ? 0 : 0.6;
+const WALL_BOUNCE = CALM ? 0 : 0.85;
 const MAX_SPEED = 40;
 const DRAG_START = 6;
 const FRAME = 1000 / 60;
 const THROW = 1.4;
 const STALE = 300;
 const WINDOW = 120;
-const CALM = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const NUDGE = 10;
+const KEYS: Record<string, [number, number]> = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
 
 type Ball = { el: HTMLElement; x: number; y: number; vx: number; vy: number; face: number; squish: number };
 
@@ -63,6 +65,7 @@ document.addEventListener("astro:page-load", () => {
   let press = { x: 0, y: 0 };
   let offset = { x: 0, y: 0 };
   let running = false;
+  let visible = true;
 
   const clamp = (v: number, lo: number, hi: number) => Math.min(Math.max(v, lo), hi);
 
@@ -136,12 +139,12 @@ document.addEventListener("astro:page-load", () => {
     balls.forEach(draw);
     label();
     const energy = balls.reduce((n, b) => n + Math.abs(b.vx) + Math.abs(b.vy), 0);
-    running = !!held || energy > 0.1;
+    running = visible && (!!held || energy > 0.1);
     if (running) requestAnimationFrame(step);
   }
 
   function wake() {
-    if (!running) { running = true; requestAnimationFrame(step); }
+    if (!running && visible) { running = true; requestAnimationFrame(step); }
   }
 
   function sample(e: PointerEvent) {
@@ -192,10 +195,21 @@ document.addEventListener("astro:page-load", () => {
     wake();
   }
 
+  function nudge(b: Ball, e: KeyboardEvent) {
+    const dir = KEYS[e.key];
+    if (!dir) return;
+    e.preventDefault();
+    b.vx = clamp(b.vx + dir[0] * NUDGE, -MAX_SPEED, MAX_SPEED);
+    b.vy = clamp(b.vy + dir[1] * NUDGE, -MAX_SPEED, MAX_SPEED);
+    wake();
+  }
+
   balls.forEach((b) => {
     b.el.onpointerdown = (e) => grab(b, e);
     b.el.onpointermove = (e) => { if (held === b) drag(e); };
     b.el.onpointerup = () => { if (held === b) release(b); };
+    b.el.onpointercancel = () => { if (held === b) { dragging = false; release(b); } };
+    b.el.onkeydown = (e) => nudge(b, e);
     b.el.onpointerenter = () => { hover = b; label(); };
     b.el.onpointerleave = (e) => {
       if (e.pointerType === "touch" || hover !== b || held === b) return;
@@ -207,6 +221,9 @@ document.addEventListener("astro:page-load", () => {
     b.el.onclick = () => pick(b);
   });
 
+  const seen = new IntersectionObserver(([e]) => { visible = e!.isIntersecting; wake(); });
+  seen.observe(pen);
+  document.addEventListener("astro:before-swap", () => seen.disconnect(), { once: true });
   balls.forEach(draw);
 });
 </script>
